@@ -172,8 +172,7 @@ export default function Contact() {
               </div>
 
               <p className="text-brown text-sm text-center leading-relaxed pt-4">
-                “All rituals and ceremonies are performed with complete
-                dedication, authenticity, and proper Vedic traditions.”
+                “सभी अनुष्ठान और धार्मिक कर्म पूर्ण निष्ठा, प्रामाणिकता और उचित वैदिक परंपराओं के साथ संपन्न किए जाते हैं।”
               </p>
             </form>
           </motion.div>
@@ -187,12 +186,12 @@ export default function Contact() {
             className="bg-linear-to-br from-[#240a00] to-[#4a1d00] rounded-4xl p-6 md:p-10 text-cream shadow-2xl relative overflow-hidden"
           >
             <div className="relative z-10">
-              <p className="uppercase tracking-[4px] max-md:text-sm text-saffron">
+              <p className="uppercase tracking-[4px] max-md:text-sm text-saffron font-medium">
                 Get In Touch
               </p>
 
-              <h3 className="text-3xl max-md:text-xl amaranth-bold font-bold mt-4 max-md:mt-2 leading-snug">
-                We’re Here to Guide Your Spiritual Journey
+              <h3 className="text-3xl max-md:text-xl amita-bold font-bold mt-4 max-md:mt-2 leading-snug">
+                आपकी आध्यात्मिक यात्रा में मार्गदर्शन के लिए हम सदैव तत्पर हैं
               </h3>
 
               <div className="space-y-5 max-md:space-y-2.5 mt-10 max-md:mt-5">

@@ -94,10 +94,10 @@ const Home = () => {
                   
                   {/* Problem & Solution Texts in Hindi */}
                   <div className="text-center md:text-left flex-1">
-                    <h3 className="text-2xl md:text-3xl amita-bold text-cream mb-0">
+                    <h3 className="text-xl md:text-3xl amita-bold text-cream mb-0">
                       {bannerContent.problemBanner.question}
                     </h3>
-                    <h4 className="text-lg md:text-xl font-semibold text-saffron tracking-wide mb-0 amaranth-regular">
+                    <h4 className="text-sm md:text-xl font-semibold text-saffron tracking-wide mb-0 amaranth-regular">
                       {bannerContent.problemBanner.solution}
                     </h4>
                   </div>
@@ -106,13 +106,13 @@ const Home = () => {
                   <div className="flex md:gap-4 gap-2 justify-center lg:justify-start max-sm:flex-col max-sm:items-center">
                     <a 
                       href={bannerContent.ctas.primary.link} 
-                      className="md:px-6 md:py-3 px-4 py-2 text-center min-w-[150px] bg-saffron text-darkbrown font-bold rounded-full h-fit hover:bg-orange-500 hover:scale-105 transition-all duration-300 shadow-lg text-sm"
+                      className="md:px-6 md:py-3 px-3 py-1.5 text-center min-w-[150px] bg-saffron text-darkbrown font-bold rounded-full h-fit hover:bg-orange-500 hover:scale-105 transition-all duration-300 shadow-lg text-xs md:text-sm"
                     >
                       {bannerContent.ctas.primary.label}
                     </a>
                     <a 
                       href={bannerContent.ctas.secondary.link} 
-                      className="md:px-6 md:py-3 px-4 py-2 h-fit text-center min-w-[150px] border-cream/70 border-2 rounded-full hover:bg-cream/10 font-medium transition-all duration-300 text-sm"
+                      className="md:px-6 md:py-3 px-2.5 py-1.25 h-fit text-center min-w-[150px] border-cream/70 border-2 rounded-full hover:bg-cream/10 font-medium transition-all duration-300 text-xs md:text-sm"
                     >
                       {bannerContent.ctas.secondary.label}
                     </a>

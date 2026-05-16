@@ -24,7 +24,7 @@ export const bannerContent = {
       link: "#services",
     },
     secondary: {
-      label: "Call Now",
+      label: "Call Now at +919876543210",
       link: "tel:+911234567890", // यहाँ अपना असली फ़ोन नंबर डालें
     },
   },

@@ -35,29 +35,29 @@ export const contactFormFields = [
 export const contactDetails = [
   {
     id: 1,
-    title: "Phone Number",
-    value: "+91 9876543210",
+    title: "फ़ोन नंबर",
+    value: "+91 9589547529",
     icon: "Phone",
   },
 
   {
     id: 2,
-    title: "Email Address",
+    title: "ईमेल पता",
     value: "vedicservices@gmail.com",
     icon: "Mail",
   },
 
   {
     id: 3,
-    title: "Location",
-    value: "Indore, Madhya Pradesh, India",
+    title: "स्थान (Location)",
+    value: "इन्दौर, मध्य प्रदेश, भारत",
     icon: "MapPin",
   },
 
   {
     id: 4,
-    title: "Available",
-    value: "Monday to Sunday",
+    title: "उपलब्धता",
+    value: "सोमवार से रविवार (सप्ताह के सभी दिन)",
     icon: "Clock3",
   },
 ];

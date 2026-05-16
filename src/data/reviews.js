@@ -2,32 +2,32 @@ export const overviewStats = [
   {
     id: 1,
     number: "5+",
-    title: "Years Experience",
-    description: "Years of spiritual knowledge and Vedic ritual expertise.",
+    title: "वर्षों का अनुभव",
+    description: "गहन आध्यात्मिक ज्ञान और वैदिक अनुष्ठानों का लंबा अनुभव।",
     icon: "Award",
   },
 
   {
     id: 2,
     number: "1000+",
-    title: "Happy Families",
-    description: "Families served with devotion and sacred rituals.",
+    title: "संतुष्ट परिवार",
+    description: "पूर्ण निष्ठा और पवित्र अनुष्ठानों से लाभान्वित हुए सुखी परिवार।",
     icon: "Users",
   },
 
   {
     id: 3,
     number: "12+",
-    title: "Spiritual Services",
-    description: "Wide range of Vedic rituals and पूजा services.",
+    title: "आध्यात्मिक सेवाएं",
+    description: "वैदिक अनुष्ठानों, पावन यज्ञों और पूजा सेवाओं की विस्तृत श्रृंखला।",
     icon: "Sparkles",
   },
 
   {
     id: 4,
     number: "4.9★",
-    title: "Client Satisfaction",
-    description: "Trusted and appreciated by devotees and families.",
+    title: "भक्तों का विश्वास",
+    description: "श्रद्धालुओं और परिवारों द्वारा सदैव सराहनीय एवं पूर्ण विश्वसनीय।",
     icon: "Star",
   },
 ];
@@ -38,7 +38,7 @@ export const reviews = [
     name: "Rahul Sharma",
     rating: 5,
     review:
-      "Pandit Ji performed our Griha Pravesh Puja with complete devotion and proper विधि-विधान. The experience was truly peaceful and divine.",
+      "पंडित जी ने हमारे गृह प्रवेश की पूजा पूर्ण श्रद्धा और उचित विधि-विधान के साथ संपन्न कराई। उनका सानिध्य वास्तव में अत्यंत शांतिपूर्ण और दिव्य था।",
   },
 
   {
@@ -46,7 +46,7 @@ export const reviews = [
     name: "Priya Verma",
     rating: 5,
     review:
-      "Very knowledgeable and humble. The Navgrah Shanti Puja was performed beautifully and everything was explained properly.",
+      "पंडित जी बहुत ज्ञानी और सौम्य स्वभाव के हैं। उन्होंने नवग्रह शांति पूजा को बहुत ही सुंदर तरीके से कराया और हर एक नियम को अच्छे से समझाया।",
   },
 
   {
@@ -54,7 +54,7 @@ export const reviews = [
     name: "Amit Tiwari",
     rating: 5,
     review:
-      "We contacted Pandit Ji for Rudrabhishek and Vastu Shanti. The rituals were authentic and brought a very positive atmosphere to our home.",
+      "हमने महा रुद्राभिषेक और वास्तु शांति के लिए पंडित जी से संपर्क किया था। सभी अनुष्ठान पूर्णतः प्रामाणिक थे, जिससे हमारे घर में बेहद सकारात्मक माहौल बना।",
   },
 
   {
@@ -62,6 +62,6 @@ export const reviews = [
     name: "Sneha Mishra",
     rating: 5,
     review:
-      "Highly recommended for all spiritual and Vedic rituals. Professional, punctual, and spiritually uplifting experience.",
+      "सभी प्रकार के आध्यात्मिक और वैदिक अनुष्ठानों के लिए पंडित जी का नाम अत्यधिक अनुशंसित है। समय की पाबंदी, व्यावसायिकता और एक अलौकिक अनुभव।",
   },
 ];

@@ -27,7 +27,7 @@ const Navbar = () => {
           </a>
 
           <div className="hidden md:flex space-x-6 ">
-            <a href="#home" className="hover:text-yellow-400">
+            <a href="#home" onClick={()=> setOpen(false)}  className="hover:text-yellow-400">
               Home
             </a>
             <a href="#videos" className="hover:text-yellow-400">
@@ -78,28 +78,28 @@ const Navbar = () => {
             </div>
 
             <div className="flex flex-col space-y-6 text-lg ">
-              <a href="#home" className="hover:text-yellow-400">
+              <a href="#home" onClick={()=> setOpen(false)}  className="hover:text-yellow-400">
                 Home
               </a>
-              <a href="#videos" className="hover:text-yellow-400">
+              <a href="#videos" onClick={()=> setOpen(false)}  className="hover:text-yellow-400">
                 Videos
               </a>
-              <a href="#services" className="hover:text-yellow-400">
+              <a href="#services" onClick={()=> setOpen(false)}  className="hover:text-yellow-400">
                 Services
               </a>
-              <a href="#gallery" className="hover:text-yellow-400">
+              <a href="#gallery" onClick={()=> setOpen(false)}  className="hover:text-yellow-400">
                 Gallery
               </a>
-              <a href="#about" className="hover:text-yellow-400">
+              <a href="#about" onClick={()=> setOpen(false)}  className="hover:text-yellow-400">
                 About
               </a>
-              <a href="#contact" className="hover:text-yellow-400">
+              <a href="#contact" onClick={()=> setOpen(false)}  className="hover:text-yellow-400">
                 Contact
               </a>
-              <a href="#reviews" className="hover:text-yellow-400">
+              <a href="#reviews" onClick={()=> setOpen(false)}  className="hover:text-yellow-400">
                 Reviews
               </a>
-              <a href="#location" className="hover:text-yellow-400">
+              <a href="#location" onClick={()=> setOpen(false)}  className="hover:text-yellow-400">
                 Location
               </a>
             </div>

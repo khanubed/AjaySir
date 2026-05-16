@@ -2,7 +2,7 @@ import React from "react";
 import { PhoneCall, HelpCircle } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWhatsapp, faInstagram } from "@fortawesome/free-brands-svg-icons";
-import { bannerContent } from "../data/bannerContent";
+import { bannerContent } from "../data/homeData";
 
 const ActionStrip = () => {
   return (

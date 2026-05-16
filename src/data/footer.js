@@ -1,9 +1,9 @@
 export const footerServices = [
-  "Rudrabhishek",
-  "Navgrah Shanti Puja",
-  "Vastu Shanti",
-  "Durga Saptashati Path",
-  "Kaal Sarp Dosh Nivaran",
+  "महा रुद्राभिषेक",
+  "नवग्रह शांति पूजा",
+  "वास्तु शांति अनुष्ठान",
+  "श्री दुर्गा सप्तशती पाठ",
+  "कालसर्प दोष निवारण",
 ];
 
 export const footerLinks = [
@@ -38,8 +38,6 @@ export const footerLinks = [
   },
 ];
 
-
-
 export const socialLinks = [
   {
     name: "Instagram",
@@ -67,4 +65,4 @@ export const socialLinks = [
 ];
 
 export const footerBottomText =
-  "© 2026 Pandit Ji Vedic Services. All Rights Reserved.";
+  "© 2026 पंडित जी वैदिक सेवाएं। सर्वाधिकार सुरक्षित।";

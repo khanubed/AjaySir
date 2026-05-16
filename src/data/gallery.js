@@ -2,6 +2,12 @@ import image1 from "../assets/images/gallery/image1.jpeg"
 import image2 from "../assets/images/gallery/image2.jpeg"
 import image3 from "../assets/images/gallery/image3.jpeg"
 import image4 from "../assets/images/gallery/image4.jpeg"
+import image5 from "../assets/images/gallery/image5.jpeg"
+import image6 from "../assets/images/gallery/image6.jpeg"
+import image7 from "../assets/images/gallery/image7.jpeg"
+import image8 from "../assets/images/gallery/image8.jpeg"
+import image9 from "../assets/images/gallery/image9.jpeg"
+import image10 from "../assets/images/gallery/image10.jpeg"
 
 
 export const galleryImages = [
@@ -24,50 +30,42 @@ export const galleryImages = [
   },
     {
     id:5,
-    image :"https://www.hinduismtoday.com/wp-content/uploads/2006/04/insight2006-2.jpg"
+    image :image5
   },
   {
     id:6,
-    image :"https://www.templepurohit.com/wp-content/uploads/2015/11/Shiv-Puja-Samagri-and-Purohit-Services.jpg"
+    image :image6
   },
   {
     id:7,
-    image :"https://media.npr.org/assets/img/2010/05/13/07_amar_20_2_0816_slide-7524e58cfdb64af166c7fd58f779e8d84e56f6f0.jpg"
+    image : image7
   },
   {
     id:8,
-    image :"https://res.cloudinary.com/dckh0xu7s/image/upload/v1718524212/pandit-ji_jmc2gl.jpg"
+    image : image8
   },
   {
     id:9,
+    image : image9
+  },
+  {
+    id:10,
+    image : image10
+  },
+  {
+    id:11,
     image :"https://hindutone.com/wp-content/uploads/2025/10/Sunday_Surya_Puja_Morning_Altar.jpg"
   },
-//   {
-//     id:10,
-//     image :"https://hindutone.com/wp-content/uploads/2025/10/Sunday_Surya_Puja_Morning_Altar.jpg"
-//   },
-//   {
-//     id:11,
-//     image :"https://hindutone.com/wp-content/uploads/2025/10/Sunday_Surya_Puja_Morning_Altar.jpg"
-//   },
-//   {
-//     id:12,
-//     image :"https://www.hinduamerican.org/wp-content/uploads/2025/10/full-puja-setup-687586276.jpeg"
-//   },
+  {
+    id:12,
+    image :"https://www.hinduamerican.org/wp-content/uploads/2025/10/full-puja-setup-687586276.jpeg"
+  },
 //   {
 //     id:13,
 //     image :"https://hindutone.com/wp-content/uploads/2025/10/Sunday_Surya_Puja_Morning_Altar.jpg"
 //   },
-  {
-    id:13,
-    image :"https://onlinepujatips.wordpress.com/wp-content/uploads/2015/06/online-puja.jpg"
-  },
-  {
-    id:13,
-    image :"https://hindutempleokc.org/wp-content/uploads/2022/09/06.-Puja.jpg"
-  },
-  {
-    id:13,
-    image :"https://www.servpujastore.in/cdn/shop/files/1_399f1a5a-59df-49e2-b50e-b7daad02c2a3.png?v=1774502991&width=533"
-  },
+  // {
+  //   id:14,
+  //   image :"https://onlinepujatips.wordpress.com/wp-content/uploads/2015/06/online-puja.jpg"
+  // },
 ];

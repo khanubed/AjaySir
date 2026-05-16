@@ -83,15 +83,12 @@ export default function Contact() {
             Contact Us
           </p>
 
-          <h2 className="text-3xl md:text-5xl amaranth-bold text-darkbrown mt-4 leading-tight">
-            Book Your Puja & Spiritual Services Today
+          <h2 className="text-3xl md:text-5xl amita-bold text-darkbrown mt-4 leading-tight">
+            आज ही अपनी पूजा और आध्यात्मिक सेवाएं बुक करें
           </h2>
 
           <p className="text-brown be-vietnam-pro-light text-md max-sm:text-sm md:text-lg leading-relaxed mt-6">
-            Connect with us for पूजा, हवन, धार्मिक अनुष्ठान, वास्तु शांति, ग्रह
-            शांति, and personalized spiritual guidance. We are available to help
-            you with authentic Vedic rituals performed with devotion and
-            traditional विधि-विधान.
+            अपनी पूजा, पावन हवन, धार्मिक अनुष्ठान, वास्तु शांति, नवग्रह शांति और व्यक्तिगत आध्यात्मिक मार्गदर्शन के लिए हमसे संपर्क करें। हम पूर्ण श्रद्धा, निष्ठा और पारंपरिक वैदिक विधि-विधान के साथ आपके अनुष्ठान संपन्न कराने के लिए सदैव उपलब्ध हैं।
           </p>
         </div>
 
@@ -235,7 +232,7 @@ export default function Contact() {
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-green-500 hover:scale-110 transition-all duration-500 shadow-2xl flex items-center justify-center"
       >
-        <FontAwesomeIcon icon={faWhatsapp} className = 'text-white text-3xl' />
+        <FontAwesomeIcon icon={faWhatsapp} className='text-white text-3xl' />
       </a>
     </section>
   );

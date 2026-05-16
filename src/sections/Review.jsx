@@ -30,19 +30,16 @@ export default function Review() {
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="text-center max-w-4xl mx-auto">
-          <p className="text-saffron uppercase tracking-[4px]  text-sm md:text-base font-medium">
-            Devotees Trust Our Spiritual Services
+          <p className="text-saffron uppercase tracking-[4px] text-sm md:text-base font-medium">
+            हमारी आध्यात्मिक सेवाओं पर भक्तों का अटूट विश्वास
           </p>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl  amaranth-bold font-bold text-darkbrown leading-tight mt-4">
-            Bringing Peace, Positivity & Divine Blessings to Every Family
+          <h2 className="text-3xl sm:text-4xl md:text-5xl amita-bold font-bold text-darkbrown leading-tight mt-4">
+            हर परिवार में सुख, शांति, सकारात्मकता और ईश्वरीय आशीर्वाद का संचार
           </h2>
 
-          <p className="text-sm sm:text-md md:text-lg text-brown  leading-relaxed mt-6">
-            Hundreds of families have trusted our Vedic rituals, पूजा services,
-            and spiritual guidance for peace, prosperity, happiness, and
-            positive energy. Every ceremony is performed with devotion,
-            authenticity, and proper विधि-विधान.
+          <p className="text-sm sm:text-md md:text-lg text-brown leading-relaxed mt-6">
+            सैकड़ों परिवारों ने जीवन में सुख, समृद्धि, खुशहाली और सकारात्मक ऊर्जा के लिए हमारे वैदिक अनुष्ठानों, पावन पूजा सेवाओं और आध्यात्मिक मार्गदर्शन पर भरोसा किया है। प्रत्येक मांगलिक कर्म पूर्ण भक्ति, प्रामाणिकता और उचित विधि-विधान के साथ संपन्न किया जाता है।
           </p>
         </div>
 
@@ -90,18 +87,16 @@ export default function Review() {
 
         <div className="mt-24">
           <div className="text-center max-w-3xl mx-auto">
-            <p className="text-saffron uppercase tracking-[4px]  text-sm md:text-base font-medium">
-              What Devotees Say About Us
+            <p className="text-saffron uppercase tracking-[4px] text-sm md:text-base font-medium">
+              हमारे बारे में भक्तों के विचार
             </p>
 
-            <h2 className="text-3xl sm:text-4xl md:text-5xl  amaranth-bold font-bold text-darkbrown leading-tight mt-4">
-              Trusted by Families & Devotees
+            <h2 className="text-3xl sm:text-4xl md:text-5xl amita-bold font-bold text-darkbrown leading-tight mt-4">
+              परिवारों और श्रद्धालुओं का अटूट विश्वास
             </h2>
 
-            <p className="text-sm sm:text-md md:text-lg text-brown  leading-relaxed mt-6">
-              Real experiences shared by families and devotees who received
-              spiritual guidance and Vedic services with complete satisfaction
-              and positivity.
+            <p className="text-sm sm:text-md md:text-lg text-brown leading-relaxed mt-6">
+              उन परिवारों और भक्तों के वास्तविक अनुभव, जिन्होंने पूर्ण संतुष्टि, असीम श्रद्धा और सकारात्मकता के साथ आध्यात्मिक मार्गदर्शन और वैदिक सेवाओं का लाभ प्राप्त किया।
             </p>
           </div>
 
@@ -161,11 +156,10 @@ export default function Review() {
           className="mt-18 bg-linear-to-r from-[#240a00] to-[#4a1d00] rounded-4xl p-6 md:p-10 text-center relative overflow-hidden"
         >
 
-          <div className="relative z-10">
+<div className="relative z-10">
             <Quote className="text-saffron mx-auto" size={30} />
-            <p className="text-xl md:text-3xl amaranth-bold leading-relaxed font-semibold text-cream mt-4 max-w-4xl mx-auto">
-              “Faith and devotion together create peace, positivity, and divine
-              blessings in life.” 
+            <p className="text-xl md:text-3xl amita-bold leading-relaxed font-semibold text-cream mt-4 max-w-4xl mx-auto">
+              “श्रद्धा और भक्ति मिलकर जीवन में शांति, सकारात्मकता और दिव्य आशीर्वाद का सृजन करते हैं।”
             </p>
           </div>
         </motion.div>

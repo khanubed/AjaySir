@@ -8,7 +8,7 @@ export default function Gallery() {
   return (
     <section id='gallery' className="bg-lightcream text-center py-20 px-4 relative">
       <motion.img
-      src={eyes}
+        src={eyes}
         animate={{
           x: [0, -8, 6, -4, 5, 0],
           y: [0, 5, -6, 4, -3, 0],
@@ -24,12 +24,10 @@ export default function Gallery() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-14 flex flex-col items-center w-full">
           <h2 className="text-3xl mb-5 amaranth-bold md:text-5xl font-bold text-darkbrown mt-3">
-            Divine Moments & Sacred Rituals
+            दिव्य क्षण एवं पवित्र अनुष्ठान
           </h2>
-          <p className="text-brown  text-center max-w-4xl be-vietnam-pro">
-            Explore glimpses of sacred rituals, spiritual ceremonies, havan,
-            puja, and divine moments performed with devotion, tradition, and
-            authentic Vedic practices.
+          <p className="text-brown text-center max-w-4xl be-vietnam-pro">
+            पूर्ण भक्ति, सनातन परंपरा और प्रामाणिक वैदिक पद्धतियों के साथ संपन्न कराए गए पवित्र अनुष्ठानों, आध्यात्मिक समारोहों, हवन, विशेष पूजा और अलौकिक क्षणों की दिव्य झलकियाँ देखें।
           </p>
         </div>
 

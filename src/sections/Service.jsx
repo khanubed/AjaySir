@@ -45,14 +45,11 @@ const Service = () => {
     >
       <div className="text-center md:mt-9 mb-16 relative z-10">
         <h2 className="text-3xl md:text-5xl amaranth-bold text-darkbrown font-bold mb-4">
-          Sacred Vedic Rituals & Spiritual Solutions
+          पवित्र वैदिक अनुष्ठान एवं आध्यात्मिक समाधान
         </h2>
 
         <p className="text-brown max-md:text-sm be-vietnam-pro-regular max-w-3xl mx-auto">
-          We offer authentic Vedic rituals and spiritual ceremonies performed
-          with complete devotion, proper विधि-विधान, and traditional practices
-          to bring peace, prosperity, positivity, and divine blessings into your
-          life.
+          हम आपके जीवन में सुख, समृद्धि, सकारात्मकता और ईश्वरीय आशीर्वाद लाने के लिए पूर्ण भक्ति, उचित विधि-विधान और पारंपरिक प्रथाओं के साथ संपन्न होने वाले प्रामाणिक वैदिक अनुष्ठान और आध्यात्मिक सेवाएं प्रदान करते हैं।
         </p>
       </div>
 
@@ -81,7 +78,7 @@ const Service = () => {
                   className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
                   loading="lazy"
                 />
-                
+
                 {/* Floating Icon Over Image */}
                 <div className="absolute top-4 right-4 z-20 bg-white/80 backdrop-blur-md w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:bg-saffron">
                   {Icon && <Icon size={22} className="text-brown group-hover:text-white transition-colors" />}
@@ -116,7 +113,7 @@ const Service = () => {
           duration: 45,
           ease: "linear",
         }}
-        className="w-80 max-sm:w-48 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-0 opacity-[0.03] object-contain pointer-events-none"
+        className="w-60 max-sm:w-48 absolute left-1/2 -translate-x-1/2 top-10 z-0 opacity-[0.1] object-contain pointer-events-none"
       />
     </section>
   );

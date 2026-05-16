@@ -8,7 +8,7 @@ export const VideoSection = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);
 
   return (
-    <section className="bg-lightcream py-20 px-4 md:px-10">
+    <section id= "videos" className="bg-lightcream py-20 px-4 md:px-10">
       <div className="max-w-7xl  mx-auto ">
 
         <div className="text-center mb-16">

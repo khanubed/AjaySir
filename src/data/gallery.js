@@ -1,20 +1,26 @@
+import image1 from "../assets/images/gallery/image1.jpeg"
+import image2 from "../assets/images/gallery/image2.jpeg"
+import image3 from "../assets/images/gallery/image3.jpeg"
+import image4 from "../assets/images/gallery/image4.jpeg"
+
+
 export const galleryImages = [
   {
     id: 1,
-    image:"https://bhaktimarga.ie/wp-content/uploads/2023/06/Puja-ceremony-1080x675.webp",
+    image: image1
   },
   {
     id: 2,
-    image:"https://friendsaf.com/wp-content/uploads/2014/08/hindu1200px.jpg",
+    image:image2,
   },
   {
     id: 3,
-    image:"https://www.sanskritimagazine.com/wp-content/uploads/2015/02/h10_20193933.jpg",
+    image:image3,
   },
 
   {
     id:4,
-    image :"https://hindutone.com/wp-content/uploads/2025/10/Sunday_Surya_Puja_Morning_Altar.jpg"
+    image :image4
   },
     {
     id:5,

@@ -30,6 +30,9 @@ const Navbar = () => {
             <a href="#home" className="hover:text-yellow-400">
               Home
             </a>
+            <a href="#videos" className="hover:text-yellow-400">
+              Videos
+            </a>
             <a href="#services" className="hover:text-yellow-400">
               Services
             </a>
@@ -77,6 +80,9 @@ const Navbar = () => {
             <div className="flex flex-col space-y-6 text-lg ">
               <a href="#home" className="hover:text-yellow-400">
                 Home
+              </a>
+              <a href="#videos" className="hover:text-yellow-400">
+                Videos
               </a>
               <a href="#services" className="hover:text-yellow-400">
                 Services

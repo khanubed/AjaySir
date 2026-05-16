@@ -186,8 +186,8 @@ export default function Contact() {
             className="bg-linear-to-br from-[#240a00] to-[#4a1d00] rounded-4xl p-6 md:p-10 text-cream shadow-2xl relative overflow-hidden"
           >
             <div className="relative z-10">
-              <p className="uppercase tracking-[4px] max-md:text-sm text-saffron font-medium">
-                Get In Touch
+              <p className="uppercase tracking-[4px] max-md:text-sm text-saffron amita-bold font-medium">
+                हमसे संपर्क करें
               </p>
 
               <h3 className="text-3xl max-md:text-xl amita-bold font-bold mt-4 max-md:mt-2 leading-snug">

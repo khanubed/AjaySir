@@ -1,33 +1,18 @@
-import React from 'react'
-import Home from './sections/Home'
-import Service from './sections/Service'
-import Gallery from './sections/Gallery'
-import About from './sections/About'
-import Contact from './sections/Contact'
-import Review from './sections/Review'
-// import VenueDetailsPage from './sections/Venue'
-import Location from './sections/Location'
-import Footer from './components/Footer'
-import CentreBanner from './sections/CentreBanner'
-import VideoSection from './sections/VideoSection'
-import ActionStrip from './sections/ActionStrip'
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home"; // Your main website
+import AdminPortal from "./admin/AdminPortal";
 
-const App = () => {
+export default function App() {
   return (
-    <div className='bg-[#a86121]'>
-      <Home/>
-      <ActionStrip/>
-      <Service/>
-      <VideoSection/>
-      <Gallery/>
-      <About/>
-      <Contact/>
-      <Review/>
-      <Location/>
-      <Footer/>
-    </div>
-    // <VenueDetailsPage/>
-  )
+    <Router>
+      <Routes>
+        {/* Public Website Routes */}
+        <Route path="/" element={<Home />} />
+        
+        {/* Unified Admin Space */}
+        <Route path="/admin" element={<AdminPortal />} />
+      </Routes>
+    </Router>
+  );
 }
-
-export default App

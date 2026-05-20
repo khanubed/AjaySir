@@ -1,10 +1,22 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
-// नए बनाए गए aboutData को इम्पोर्ट करें
-import { aboutData } from "../data/about.js";
+// डेटा लोड करने के लिए नए हेल्पर फंक्शन को इम्पोर्ट करें
+import { getAboutData } from "../data/about.js";
 
 export default function About() {
+  // लाइव डेटा को स्टेट में मैनेज करें ताकि एडमिन पैनल के चेंजेस तुरंत सिंक हो सकें
+  const [aboutData, setAboutData] = useState(null);
+
+  useEffect(() => {
+    setAboutData(getAboutData());
+  }, []);
+
+  // जब तक डेटा लोड न हो, एक क्लीन स्केलेटन या खाली स्पेस दिखाएं
+  if (!aboutData) {
+    return <div className="bg-lightcream py-24 min-h-[60vh]" />;
+  }
+
   return (
     <section id="about" className="bg-lightcream py-24 px-4 overflow-hidden">
       <div className="max-w-7xl mx-auto">
@@ -16,13 +28,13 @@ export default function About() {
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="relative aspect-2/3 max-w-xl max-md:order-2"
+            className="relative aspect-2/3 max-w-xl max-md:order-2 w-full"
           >
-            <div className="overflow-hidden rounded-4xl shadow-2xl border border-brown/10 aspect-2/3 h-auto flex-wrap">
+            <div className="overflow-hidden rounded-4xl shadow-2xl border border-brown/10 aspect-2/3 h-auto flex-wrap bg-brown/5">
               <img
-                src="https://www.shutterstock.com/image-photo/hindu-indian-pandit-looking-front-260nw-2626343377.jpg"
+                src={aboutData.image || "https://www.shutterstock.com/image-photo/hindu-indian-pandit-looking-front-260nw-2626343377.jpg"}
                 alt="Pandit Ji"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-all duration-500"
               />
             </div>
 
@@ -51,14 +63,14 @@ export default function About() {
               {aboutData.mainHeading}
             </h2>
             
-            {/* Loop through paragraphs array */}
+            {/* Dynamic paragraphs map */}
             <div className="space-y-6 mt-8 be-vietnam-pro-light text-brown text-sm md:text-lg leading-relaxed text-justify">
               {aboutData.paragraphs.map((para, idx) => (
                 <p key={idx}>{para}</p>
               ))}
             </div>
 
-            {/* Highlights Grid Loop */}
+            {/* Dynamic highlights checklist grid */}
             <div className="grid sm:grid-cols-2 gap-4 mt-10">
               {aboutData.highlights.map((item, index) => (
                 <motion.div
@@ -79,7 +91,7 @@ export default function About() {
           </motion.div>
         </div>
 
-        {/* BOTTOM: MISSION CARD BLOCK */}
+        {/* BOTTOM: DYNAMIC MISSION CARD BLOCK */}
         <motion.div
           initial={{ opacity: 0, y: 60 }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -1,35 +1,18 @@
-export const highlights = [
-  "Authentic Vedic Rituals",
-  "Experienced & Trusted Pandit Ji",
-  "Personalized Spiritual Guidance",
-  "Traditional विधि-विधान & Mantras",
-  "Available for Home, Temple & Special Ceremonies",
-];
+// src/data/about.js
 
-
-// src/data/aboutData.js
-
-export const aboutData = {
-  // छोटा ऊपरी एक्सेंट टैग
+const defaultAboutData = {
   topTag: "पंडित जी के बारे में",
-  
-  // मुख्य बड़ी हेडिंग
   mainHeading: "पवित्र वैदिक परंपराओं एवं आध्यात्मिक मार्गदर्शन के प्रति समर्पित",
-  
-  // अनुभव कार्ड (Statistics Badge)
+  image: "https://www.shutterstock.com/image-photo/hindu-indian-pandit-looking-front-260nw-2626343377.jpg",
   stats: {
     count: "1000+",
     label: "संपन्न पवित्र अनुष्ठान",
   },
-
-  // मुख्य विवरण पैराग्राफ्स की लिस्ट
   paragraphs: [
     "वैदिक अनुष्ठानों और आध्यात्मिक साधना के वर्षों के गहन अनुभव के साथ, पंडित जी सनातन धर्मग्रंथों और पूर्ण विधि-विधान के अनुसार परिवारों को प्रामाणिक पूजा, हवन और धार्मिक अनुष्ठान सेवाएं प्रदान करने के लिए पूरी तरह समर्पित हैं।",
     "आपके जीवन में सुख, शांति, समृद्धि, सकारात्मक ऊर्जा और ईश्वरीय आशीर्वाद का संचार करने के लिए प्रत्येक अनुष्ठान को पूर्ण शुद्धता, अटूट निष्ठा और मंत्रों के गहरे आध्यात्मिक ज्ञान के साथ संपन्न किया जाता है।",
     "गृह शांति, महा रुद्राभिषेक और नवग्रह पूजन से लेकर वास्तु शांति एवं श्री दुर्गा सप्तशती पाठ तक, हर मांगलिक और तांत्रिक कर्म को पूरी श्रद्धा और हमारी पूजनीय सनातन परंपराओं के प्रति अत्यंत सम्मान के साथ आयोजित किया जाता है।"
   ],
-
-  // मुख्य विशेषताएं (Highlights Check-List)
   highlights: [
     "प्रामाणिक वैदिक पद्धति और विधि-विधान",
     "वर्षों का गहन आध्यात्मिक अनुभव",
@@ -38,11 +21,27 @@ export const aboutData = {
     "सकारात्मक ऊर्जा और मानसिक शांति",
     "समयबद्ध और गरिमामय अनुष्ठान कर्म"
   ],
-
-  // निचला उद्देश्य/मिशन कार्ड (Mission Block)
   mission: {
     tag: "हमारा पावन उद्देश्य",
     heading: "पवित्र सनातन परंपराओं का संरक्षण एवं संवर्धन",
     description: "हमारा एकमात्र उद्देश्य और संकल्प वैदिक परंपराओं की सुंदरता और उनके दिव्य प्रभाव को सहेजना और जन-जन तक पहुँचाना है। हम पवित्र अनुष्ठानों और सच्चे आध्यात्मिक मार्गदर्शन के माध्यम से लोगों के जीवन में शांति, आत्मिक शक्ति, सकारात्मकता और सुख-सामंजस्य स्थापित करने में निरंतर प्रयासरत हैं।"
   }
 };
+
+// लोकल स्टोरेज से डेटा लोड करने या डिफ़ॉल्ट डेटा देने के लिए फंक्शन्स
+export const getAboutData = () => {
+  if (typeof window !== "undefined") {
+    const saved = localStorage.getItem("pandit_about_data");
+    return saved ? JSON.parse(saved) : defaultAboutData;
+  }
+  return defaultAboutData;
+};
+
+export const saveAboutData = (data) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("pandit_about_data", JSON.stringify(data));
+  }
+};
+
+// पुराने कोड के साथ कम्पैटिबिलिटी बनाए रखने के लिए एक्सपोर्ट
+export const aboutData = getAboutData();

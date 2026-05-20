@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -12,7 +12,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 import { motion } from "framer-motion";
-import { footerBottomText, footerLinks, footerServices, socialLinks } from "../data/footer";
+// यहां हमने डायनेमिक डेटा फैचर 'getLiveFooterData' को इम्पोर्ट कर लिया है
+import { footerLinks, footerServices, getLiveFooterData } from "../data/footer";
 
 const iconMap = {
   faInstagram,
@@ -22,6 +23,18 @@ const iconMap = {
 };
 
 export default function Footer() {
+  const [liveData, setLiveData] = useState(null);
+
+  useEffect(() => {
+    // माउंट होते ही एडमिन द्वारा सेव्ड या डिफ़ॉल्ट डेटा स्टेट में ले लें
+    setLiveData(getLiveFooterData());
+  }, []);
+
+  // सेफ फॉलबैक जब तक स्टेट लोड हो रही हो
+  if (!liveData) {
+    return <footer className="bg-black py-10 text-center text-cream text-sm">लोड हो रहा है...</footer>;
+  }
+
   return (
     <footer className="relative pt-10 overflow-hidden bg-linear-to-b from-[#240a00] via-[#1b0700] to-black text-cream">
 
@@ -55,19 +68,20 @@ export default function Footer() {
               </div>
             </div>
 
+            {/* लाइव डायनेमिक स्लोगन */}
             <p className="text-[#f3d9b1] leading-relaxed mt-6 text-sm md:text-base">
-              वैदिक परंपराओं के माध्यम से आपके जीवन में सुख, शांति, सकारात्मकता और दिव्य आशीर्वाद का संचार।
+              {liveData.slogan}
             </p>
 
-            {/* Floating Quote Box */}
+            {/* Floating Quote Box - लाइव डायनेमिक कोट */}
             <div className="mt-8 bg-white/5 border border-white/10 rounded-2xl p-5">
               <p className="text-sm text-[#f3d9b1] leading-relaxed italic">
-                “विश्वास, सच्ची भक्ति और पवित्र अनुष्ठान जीवन को सकारात्मक ऊर्जा और दैवीय कृपा से आलोकित करते हैं।”
+                {liveData.quote}
               </p>
             </div>
           </div>
 
-          {/* COLUMN 2: QUICK NAVIGATION LINKS */}
+          {/* COLUMN 2: QUICK NAVIGATION LINKS (Static Routing) */}
           <div>
             <h3 className="text-xl font-semibold text-cream amita-regular">त्वरित लिंक्स</h3>
 
@@ -84,7 +98,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* COLUMN 3: SPIRITUAL SERVICES LIST */}
+          {/* COLUMN 3: SPIRITUAL SERVICES LIST (Static Domain Array) */}
           <div>
             <h3 className="text-xl font-semibold text-cream amita-regular">
               आध्यात्मिक सेवाएं
@@ -106,18 +120,16 @@ export default function Footer() {
           {/* COLUMN 4: SOCIAL CONNECT LAYER */}
           <div>
             <h3 className="text-xl font-semibold text-cream">
-
               Connect With Us
-
             </h3>
 
             <p className="text-[#f3d9b1] leading-relaxed mt-6 text-sm md:text-base">
-              आध्यात्मिक मार्गदर्शन, विशिष्ट अनुष्ठानों और व्यक्तिगत वैदिक पूजा सेवाओं के लिए किसी भी समय संपर्क करें।
+              आध्यात्मिक मार्गदर्शन, विशिष्ट अनुष्ठानों yards और व्यक्तिगत वैदिक पूजा सेवाओं के लिए किसी भी समय संपर्क करें।
             </p>
 
-            {/* Dynamic Social Icons Render */}
+            {/* Dynamic Social Icons Render from Live Data State */}
             <div className="flex flex-wrap gap-4 mt-8">
-              {socialLinks.map((item, index) => {
+              {liveData.socialLinks.map((item, index) => {
                 const icon = iconMap[item.icon];
                 return (
                   <a
@@ -136,10 +148,10 @@ export default function Footer() {
 
         </div>
 
-        {/* BOTTOM SECTION: COPYRIGHT DISCLOSURE */}
+        {/* BOTTOM SECTION: COPYRIGHT DISCLOSURE - लाइव डायनेमिक कॉपीराइट */}
         <div className="border-t border-white/10 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-[#f3d9b1] text-sm text-center md:text-left w-full">
-            {footerBottomText}
+            {liveData.footerBottomText}
           </p>
         </div>
 

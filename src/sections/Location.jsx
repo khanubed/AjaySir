@@ -1,8 +1,20 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { locationData } from "../data/locationData";
+import { getLiveLocationData } from "../data/locationData";
 
 export default function LocationSection() {
+  const [liveLocationData, setLiveLocationData] = useState(null);
+
+  useEffect(() => {
+    // लोकलस्टोरेज से फ्रेश डेटा प्राप्त करें
+    setLiveLocationData(getLiveLocationData());
+  }, []);
+
+  // जब तक डेटा लोड न हो तब तक खाली सेक्शन रेंडर करें (या कंकाल/लोडर दे सकते हैं)
+  if (!liveLocationData) {
+    return <section id='location' className="bg-lightcream pb-24 pt-10 min-h-[50vh]" />;
+  }
+
   return (
     <section id='location' className="bg-lightcream pb-24 pt-10 px-4 overflow-hidden relative">
 
@@ -15,15 +27,15 @@ export default function LocationSection() {
         {/* HEADER SECTION */}
         <div className="text-center max-w-4xl mx-auto">
           <p className="text-saffron uppercase tracking-[4px] text-sm md:text-base font-medium">
-            {locationData.topTag}
+            {liveLocationData.topTag}
           </p>
 
           <h2 className="text-3xl amita-bold sm:text-4xl md:text-5xl font-bold text-darkbrown leading-tight mt-4">
-            {locationData.mainHeading}
+            {liveLocationData.mainHeading}
           </h2>
 
           <p className="text-base md:text-lg text-brown leading-relaxed mt-6 max-w-3xl mx-auto">
-            {locationData.description}
+            {liveLocationData.description}
           </p>
         </div>
 
@@ -38,7 +50,7 @@ export default function LocationSection() {
           <div className="relative overflow-hidden rounded-[2.5rem] border border-white/20 shadow-2xl">
 
             <iframe
-              src={locationData.mapEmbedUrl}
+              src={liveLocationData.mapEmbedUrl}
               width="100%"
               height="500"
               style={{ border: 0 }}
@@ -61,15 +73,15 @@ export default function LocationSection() {
               className="absolute bottom-4 left-4 right-4 md:bottom-8 md:left-8 md:max-w-md backdrop-blur-xl bg-white/15 border border-white/20 rounded-4xl p-4 md:p-7 shadow-2xl"
             >
               <p className="text-saffron uppercase tracking-[3px] text-xs md:text-sm font-semibold">
-                {locationData.cardTag}
+                {liveLocationData.cardTag}
               </p>
 
               <h3 className="text-xl md:text-3xl amita-bold text-cream leading-snug mt-4">
-                {locationData.cardHeading}
+                {liveLocationData.cardHeading}
               </h3>
 
               <p className="text-[#f3d9b1] text-xs md:text-sm leading-relaxed mt-5">
-                {locationData.cardDescription}
+                {liveLocationData.cardDescription}
               </p>
             </motion.div>
 

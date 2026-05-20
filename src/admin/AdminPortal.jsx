@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   LayoutDashboard, Sparkles, Video, Image, UserCheck, 
-  Mail, MessageSquare, MapPin, CreditCard, LogOut, 
+  Mail, MessageSquare,MessageSquareText ,  MapPin, CreditCard, LogOut, 
   Menu, X, ShieldCheck, Lock, Eye, EyeOff
 } from "lucide-react";
 
@@ -11,6 +11,7 @@ import AdminHero from "./sections/AdminHero";
 import AdminServices from "./sections/AdminServices";
 import AdminVideos from "./sections/AdminVideos";
 import AdminGallery from "./sections/AdminGallery";
+import AdminQueries from "./sections/AdminQueries";
 import AdminAbout from "./sections/AdminAbout";
 import AdminContact from "./sections/AdminContact.";
 import AdminReviews from "./sections/AdminReviews";
@@ -77,6 +78,7 @@ export default function AdminPortal() {
     { id: "videos", label: "Videos", icon: Video, component: <AdminVideos onSave={triggerNotification} /> },
     { id: "gallery", label: "Gallery", icon: Image, component: <AdminGallery onSave={triggerNotification} /> },
     { id: "about", label: "About Us", icon: UserCheck, component: <AdminAbout onSave={triggerNotification} /> },
+    { id: "queries", label: "Puja Requests / Queries", icon: MessageSquareText, component: <AdminQueries onSave="{triggerNotification}"/> },
     { id: "contact", label: "Contact Details", icon: Mail, component: <AdminContact onSave={triggerNotification} /> },
     { id: "reviews", label: "Reviews & Testimonials", icon: MessageSquare, component: <AdminReviews onSave={triggerNotification} /> },
     { id: "location", label: "Location", icon: MapPin, component: <AdminLocation onSave={triggerNotification} /> },

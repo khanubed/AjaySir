@@ -5,14 +5,17 @@ import AdminPortal from "./admin/AdminPortal";
 
 export default function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Public Website Routes */}
-        <Route path="/" element={<Home />} />
-        
-        {/* Unified Admin Space */}
-        <Route path="/admin" element={<AdminPortal />} />
-      </Routes>
-    </Router>
+    <>
+    
+      <Router>
+        <Routes>
+          {/* Public Website Routes */}
+          <Route path="/" element={<Home />} />
+
+          {/* Unified Admin Space */}
+          <Route path="/admin" element={<AdminPortal />} />
+        </Routes>
+      </Router>
+    </>
   );
 }

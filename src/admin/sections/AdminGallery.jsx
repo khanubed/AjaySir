@@ -1,148 +1,247 @@
-    import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Image as ImageIcon, 
-  Plus, 
-  Trash2, 
-  X, 
-  Check, 
-  Type, 
-  Link2, 
+import toast, { Toaster } from "react-hot-toast";
+import {
+  Loader2,
+  RefreshCcw,
+  Check,
+  Trash2,
+  Upload,
+  X,
   Eye,
-  LayoutGrid
+  ImageIcon,
+  Link2,
+  Type,
+  LayoutGrid,
+  Plus,
 } from "lucide-react";
-import { galleryImages as initialGalleryImages } from "../../data/gallery";
+
+// Use custom API instance for automatic base URL and Auth headers
+import api from "../../api/axios.js";
+import { galleryImages as fallbackImages } from "../../data/gallery";
 
 export const AdminGallery = () => {
-  // Section text states
+  // --- State Management ---
+  const [images, setImages] = useState(fallbackImages);
   const [sectionTitle, setSectionTitle] = useState("दिव्य क्षण एवं पवित्र अनुष्ठान");
-  const [sectionSubtitle, setSectionSubtitle] = useState(
-    "पूर्ण भक्ति, सनातन परंपरा और प्रामाणिक वैदिक पद्धतियों के साथ संपन्न कराए गए पवित्र अनुष्ठानों, आध्यात्मिक समारोहों, हवन, विशेष पूजा और अलौकिक क्षणों की दिव्य झलकियाँ देखें।"
-  );
-  
-  const [images, setImages] = useState(initialGalleryImages);
+  const [sectionSubtitle, setSectionSubtitle] = useState("पवित्र अनुष्ठानों की दिव्य झलकियाँ देखें।");
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
-  // Form State for new gallery entries
-  const [formData, setFormData] = useState({
-    imageUrl: "",
-  });
+  const fileInputRef = useRef(null);
+  const [formData, setFormData] = useState({ imageUrl: "" });
 
-  const handleCreateOpen = () => {
-    setFormData({ imageUrl: "" });
-    setIsModalOpen(true);
+  // --- 1. Fetch Data from Database (Silent Load) ---
+  useEffect(() => {
+    const fetchGallery = async () => {
+      try {
+        const res = await api.get("/content/gallery");
+        const data = res.data?.data?.values;
+
+        if (data && data.images?.length > 0) {
+          setImages(data.images);
+          setSectionTitle(data.sectionTitle);
+          setSectionSubtitle(data.sectionSubtitle);
+        }
+      } catch (err) {
+        console.warn("Backend link failed, using local backup...");
+        toast.error("Offline mode active. Using local data.", {
+          icon: "📴",
+          style: { borderRadius: "10px", background: "#333", color: "#fff" },
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchGallery();
+  }, []);
+
+  // --- 2. Sync State with Backend ---
+  const saveToBackend = async (
+    updatedImages = images,
+    tTitle = sectionTitle,
+    tSub = sectionSubtitle,
+  ) => {
+    const payload = {
+      sectionTitle: tTitle,
+      sectionSubtitle: tSub,
+      images: updatedImages,
+    };
+
+    // toast.promise handles the loading/success/error lifecycle automatically
+    return toast.promise(
+      api.put("/content/gallery", payload),
+      {
+        loading: "Syncing with live server...",
+        success: <b>Live data updated!</b>,
+        error: <b>Sync failed. Check connection.</b>,
+      },
+      { style: { minWidth: "250px" } },
+    );
+  };
+
+  // --- 3. Image Upload Logic (Cloudinary via Backend) ---
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const uploadData = new FormData();
+    uploadData.append("image", file);
+
+    setIsUploading(true);
+    const uploadPromise = api.post("/upload", uploadData);
+
+    toast.promise(uploadPromise, {
+      loading: "Uploading image to cloud...",
+      success: (res) => {
+        setFormData({ imageUrl: res.data.imageUrl });
+        setIsUploading(false);
+        return "Upload complete!";
+      },
+      error: () => {
+        setIsUploading(false);
+        return "Upload failed.";
+      },
+    });
+  };
+
+  // --- 4. Content Handlers ---
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.imageUrl.trim()) return toast.error("Please provide an image or URL");
+
+    const newImages = [
+      ...images,
+      { id: Date.now(), image: formData.imageUrl.trim() },
+    ];
+    
+    setImages(newImages);
+    setIsModalOpen(false);
+    setFormData({ imageUrl: "" }); // Reset form state
+    await saveToBackend(newImages);
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("क्या आप इस तस्वीर को गैलरी से हटाना चाहते हैं?")) {
-      setImages(images.filter((img) => img.id !== id));
-    }
+    // Custom confirmation toast
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium">Remove this image from the gallery?</p>
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => toast.dismiss(t.id)} className="px-3 py-1 text-xs">
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                const filtered = images.filter((img) => img.id !== id);
+                setImages(filtered);
+                await saveToBackend(filtered);
+              }}
+              className="bg-red-600 text-white px-3 py-1 rounded-md text-xs font-bold"
+            >
+              Yes, Delete
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 6000, position: "bottom-center" },
+    );
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.imageUrl.trim()) return;
-
-    const newImageItem = {
-      id: images.length > 0 ? Math.max(...images.map((img) => img.id)) + 1 : 1,
-      image: formData.imageUrl.trim(),
-    };
-
-    setImages([...images, newImageItem]);
-    setIsModalOpen(false);
-  };
+  if (isLoading)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin text-saffron" size={48} />
+      </div>
+    );
 
   return (
-    <div className="min-h-screen bg-[#fffaf3] p-6 text-darkbrown font-sans">
-      
-      {/* SECTION 1: Header Live Settings */}
+    <div className="min-h-screen bg-[#fffaf3] p-6 text-darkbrown">
+      <Toaster position="top-right" reverseOrder={false} />
+
+      {/* HEADER SETTINGS SECTION */}
       <div className="max-w-7xl mx-auto bg-white border border-saffron/20 rounded-3xl p-6 mb-8 shadow-sm">
-        <h2 className="text-lg font-bold text-darkbrown flex items-center gap-2 mb-4">
-          <Type size={18} className="text-saffron" /> गैलरी हेडर सेटिंग्स (Gallery Header Configuration)
-        </h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            <Type size={18} className="text-saffron" /> Header Configuration
+          </h2>
+          <button
+            onClick={() => saveToBackend()}
+            className="flex items-center gap-2 bg-darkbrown text-white px-5 py-2 rounded-xl text-xs hover:bg-black transition-all font-bold active:scale-95"
+          >
+            <RefreshCcw size={14} /> Update Live Header
+          </button>
+        </div>
         <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider mb-1 text-brown/70">शीर्षक (Gallery Title)</label>
-            <input 
-              type="text" 
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron text-sm bg-gray-50/50"
-              value={sectionTitle} 
-              onChange={(e) => setSectionTitle(e.target.value)} 
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider mb-1 text-brown/70">उपशीर्षक विवरण (Gallery Subtitle)</label>
-            <textarea 
-              rows={2}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron text-sm bg-gray-50/50 resize-none"
-              value={sectionSubtitle} 
-              onChange={(e) => setSectionSubtitle(e.target.value)} 
-            />
-          </div>
+          <input
+            type="text"
+            className="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50/50 outline-none focus:border-saffron text-sm font-semibold"
+            value={sectionTitle}
+            onChange={(e) => setSectionTitle(e.target.value)}
+            placeholder="Main Gallery Title"
+          />
+          <textarea
+            rows={2}
+            className="w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50/50 outline-none focus:border-saffron text-sm resize-none"
+            value={sectionSubtitle}
+            onChange={(e) => setSectionSubtitle(e.target.value)}
+            placeholder="Gallery Subtitle"
+          />
         </div>
       </div>
 
-      {/* SECTION 2: Control Hub Header */}
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center border-b border-saffron/10 pb-6 mb-8 gap-4">
+      {/* GALLERY TOOLBAR */}
+      <div className="max-w-7xl mx-auto flex justify-between items-end mb-8 border-b border-saffron/10 pb-6">
         <div>
-          <h1 className="text-2xl font-bold text-darkbrown flex items-center gap-2">
-            <LayoutGrid className="text-saffron" /> मीडिया गैलरी ग्रिड (Live Gallery Dashboard)
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <LayoutGrid className="text-saffron" /> Media Gallery
           </h1>
-          <p className="text-xs text-brown/60 mt-0.5">
-            मैसोनरी (Masonry) लेआउट के चित्रों को प्रबंधित करें। नई वेब तस्वीरें जोड़ें या पुरानी हटाएं।
-          </p>
+          <p className="text-xs text-brown/60">Manage visual content displayed on the website</p>
         </div>
         <button
-          onClick={handleCreateOpen}
-          className="flex items-center gap-2 bg-saffron text-white font-medium py-3 px-6 rounded-xl shadow-md hover:bg-saffron/90 transition-all duration-200 transform active:scale-95 text-sm"
+          onClick={() => setIsModalOpen(true)}
+          className="bg-saffron text-white py-3 px-6 rounded-xl shadow-md hover:scale-105 transition-transform flex items-center gap-2 text-sm font-bold"
         >
-          <Plus size={16} /> नया चित्र अपलोड करें (Add Image)
+          <Plus size={18} /> Add New Media
         </button>
       </div>
 
-      {/* SECTION 3: Live Masonry Column List Grid Preview */}
+      {/* MASONRY IMAGE GRID */}
       <div className="max-w-7xl mx-auto columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-5 space-y-5">
         <AnimatePresence>
-          {images.map((img, index) => (
+          {images.map((img) => (
             <motion.div
-              key={img.id || index}
+              key={img.id}
               layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="break-inside-avoid mb-5 bg-white border border-saffron/10 rounded-2xl overflow-hidden shadow-sm group relative"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="break-inside-avoid relative group rounded-2xl overflow-hidden border border-saffron/10 shadow-sm"
             >
               <img
                 src={img.image}
-                alt={`Gallery node #${img.id}`}
-                className="w-full object-cover aspect-4/3 h-auto max-h-72 min-h-[12rem] bg-gray-100"
+                alt=""
+                className="w-full h-auto object-cover min-h-[150px] bg-gray-100"
               />
-
-              {/* Action Operations Hover Sheet overlay */}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-between p-4 z-10">
-                <div className="flex justify-between items-center w-full">
-                  <span className="text-[10px] bg-white/20 backdrop-blur-md text-white px-2.5 py-1 rounded-full font-mono">
-                    ID: #{img.id || index + 1}
-                  </span>
-                  <span className="text-[10px] bg-saffron text-white px-2.5 py-1 rounded-full">
-                    स्थान: {index + 1}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 w-full mt-auto">
+              {/* Overlay with Preview and Delete buttons */}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4">
+                <span className="text-[10px] text-white/50">#IMG_{img.id}</span>
+                <div className="flex gap-2 mt-auto">
                   <button
                     onClick={() => setPreviewImage(img.image)}
-                    className="flex-1 flex items-center justify-center gap-1 bg-white text-darkbrown py-2 rounded-xl text-xs font-semibold hover:bg-saffron hover:text-white transition-colors"
+                    className="flex-1 bg-white text-darkbrown py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1"
                   >
-                    <Eye size={12} /> देखें
+                    <Eye size={14} /> Preview
                   </button>
                   <button
                     onClick={() => handleDelete(img.id)}
-                    className="bg-red-600 text-white p-2 rounded-xl hover:bg-red-700 transition-colors"
-                    title="तस्वीर हटाएं"
+                    className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </div>
@@ -151,75 +250,93 @@ export const AdminGallery = () => {
         </AnimatePresence>
       </div>
 
-      {/* MODAL 1: Upload / Add Asset Link */}
+      {/* ADD MEDIA MODAL */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 bg-black/60 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full overflow-hidden border border-saffron/20"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="bg-white rounded-[2rem] p-6 max-w-md w-full shadow-2xl"
             >
-              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
-                <h2 className="text-lg font-bold text-darkbrown flex items-center gap-2">
-                  <ImageIcon size={18} className="text-saffron" /> नया वेब चित्र जोड़ें
-                </h2>
-                <button onClick={() => setIsModalOpen(false)} className="p-1 rounded-full hover:bg-gray-100 text-gray-400">
-                  <X size={18} />
-                </button>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                  <ImageIcon className="text-saffron" /> Upload Media
+                </h3>
+                <X className="cursor-pointer" onClick={() => setIsModalOpen(false)} />
               </div>
 
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div>
-                  <label className="text-xs font-bold text-brown flex items-center gap-1 mb-1.5">
-                    <Link2 size={14} /> इमेज URL (Web Image Address) *
-                  </label>
-                  <input
-                    type="url"
-                    required
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron text-xs font-mono bg-gray-50/50"
-                    placeholder="https://example.com/pujaphoto.jpg"
-                    value={formData.imageUrl}
-                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  />
-                </div>
-
-                {/* Live Sandbox Input Render Checker */}
-                {formData.imageUrl.trim() && (
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-2.5">
-                    <span className="text-[10px] text-gray-400 font-bold block mb-1">लाइव प्रीव्यू (Live Dynamic Check):</span>
-                    <img 
-                      src={formData.imageUrl} 
-                      onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1594322436404-5a0526db4d13?q=80&w=600"; }}
-                      alt="Preview container" 
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                  </div>
+              {/* Upload Dropzone */}
+              <div
+                onClick={() => fileInputRef.current.click()}
+                className="w-full h-40 border-2 border-dashed border-saffron/20 rounded-2xl bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:bg-saffron/5 transition-colors overflow-hidden relative"
+              >
+                {formData.imageUrl ? (
+                  <img src={formData.imageUrl} className="w-full h-full object-cover" alt="Preview" />
+                ) : (
+                  <>
+                    {isUploading ? (
+                      <Loader2 className="animate-spin text-saffron" />
+                    ) : (
+                      <Upload className="text-saffron mb-2" />
+                    )}
+                    <p className="text-xs text-gray-400">
+                      {isUploading ? "Uploading..." : "Click to select image"}
+                    </p>
+                  </>
                 )}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={handleFileUpload}
+                  accept="image/*"
+                />
+              </div>
 
-                <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-2">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl text-gray-500 hover:bg-gray-50 text-xs font-medium">
-                    रद्द करें
-                  </button>
-                  <button type="submit" className="bg-saffron text-white px-5 py-2 rounded-xl text-xs font-medium hover:bg-saffron/90 flex items-center gap-1 shadow-md">
-                    <Check size={14} /> गैलरी में जोड़ें
-                  </button>
-                </div>
-              </form>
+              <div className="mt-4">
+                <label className="text-[10px] font-bold uppercase text-gray-400 ml-1">
+                  Or paste external URL
+                </label>
+                <input
+                  type="text"
+                  className="w-full mt-1 px-4 py-2.5 rounded-xl border border-gray-100 text-xs font-mono"
+                  placeholder="https://images.example.com/photo.jpg"
+                  value={formData.imageUrl}
+                  onChange={(e) => setFormData({ imageUrl: e.target.value })}
+                />
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 py-3 text-sm text-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  className="flex-1 bg-saffron text-white rounded-xl font-bold text-sm shadow-lg hover:bg-orange-500 transition-colors"
+                >
+                  Add to Gallery
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* MODAL 2: Full-screen Image Lightbox Preview */}
+      {/* FULL-SCREEN LIGHTBOX PREVIEW */}
       <AnimatePresence>
         {previewImage && (
           <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm">
-            <button onClick={() => setPreviewImage(null)} className="absolute top-6 right-6 text-white hover:text-saffron transition-colors z-[130]">
+            <button
+              onClick={() => setPreviewImage(null)}
+              className="absolute top-6 right-6 text-white hover:text-saffron transition-colors z-[130]"
+            >
               <X size={32} />
             </button>
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
@@ -227,7 +344,7 @@ export const AdminGallery = () => {
             >
               <img
                 src={previewImage}
-                alt="Full preview item"
+                alt="Full preview"
                 className="w-full h-full object-contain max-h-[85vh]"
               />
             </motion.div>

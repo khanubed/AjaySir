@@ -1,49 +1,31 @@
-    import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Sparkles,
-  ShieldCheck,
-  HeartHandshake,
-  Flame,
-  Users,
-  Orbit,
-  Baby,
-  BookOpen,
-  FlameKindling,
-  Home,
-  Stars,
-  HeartPulse,
-  Plus,
-  Trash2,
-  Edit3,
-  X,
-  Check,
-  Eye
-} from "lucide-react";
-import { services as initialServices } from "../../data/services.js";
+import React, { useState, useEffect, useRef } from "react";
 
-// Master icon map matching your existing service layout
+import { 
+  Sparkles, ShieldCheck, HeartHandshake, Flame, Users, Orbit, 
+  Baby, BookOpen, FlameKindling, Home, Stars, HeartPulse,
+  Plus, Trash2, Edit3, Loader2, X, Upload
+} from "lucide-react";
+
+// स्थानीय डेटा (डेटाबेस खाली होने पर बैकअप के लिए)
+import { services as fallbackServices } from "../../data/services.js";
+
+// हमारा नया इंटरसेप्टर वाला एक्सियोस इंस्टेंस
+import api from "../../api/axios.js";
+
 const iconMap = {
-  Sparkles,
-  ShieldCheck,
-  HeartHandshake,
-  Flame,
-  Users,
-  Orbit,
-  Baby,
-  BookOpen,
-  FlameKindling,
-  Home,
-  Stars,
-  HeartPulse,
+  Sparkles, ShieldCheck, HeartHandshake, Flame, Users, Orbit,
+  Baby, BookOpen, FlameKindling, Home, Stars, HeartPulse,
 };
 
-const AdminServices = () => {
-  const [services, setServices] = useState(initialServices);
+export default function AdminServices({ onSave }) {
+  const [services, setServices] = useState(fallbackServices);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false); // इमेज अपलोड होने की स्थिति
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingService, setEditingService] = useState(null);
+  
+  const fileInputRef = useRef(null); // छिपे हुए फाइल इनपुट के लिए रेफ (Ref)
 
-  // Form State
   const [formData, setFormData] = useState({
     titleHindi: "",
     titleEnglish: "",
@@ -52,283 +34,209 @@ const AdminServices = () => {
     imageUrl: "",
   });
 
-  // Handle open modal for creating a new service
-  const handleCreateOpen = () => {
-    setEditingService(null);
-    setFormData({
-      titleHindi: "",
-      titleEnglish: "",
-      description: "",
-      icon: "Sparkles",
-      imageUrl: "",
-    });
-    setIsModalOpen(true);
-  };
+  // १. डेटाबेस से सेवाएं लाना (FETCH DATA)
+  useEffect(() => {
+    const fetchServicesData = async () => {
+      try {
+        //baseURL पहले से सेट है, इसलिए पूरा URL लिखने की ज़रूरत नहीं है
+        const response = await api.get(`/content/services`);
+        if (response.data.success && response.data.data?.values) {
+          setServices(response.data.data.values);
+        }
+      } catch (error) {
+        console.error("सेवाओं का डेटा लाने में त्रुटि:", error);
+        setServices(fallbackServices);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchServicesData();
+  }, []);
 
-  // Handle open modal for editing an existing service
-  const handleEditOpen = (service) => {
-    setEditingService(service);
-    setFormData({
-      titleHindi: service.titleHindi,
-      titleEnglish: service.titleEnglish,
-      description: service.description,
-      icon: service.icon,
-      imageUrl: service.imageUrl,
-    });
-    setIsModalOpen(true);
-  };
+  // २. इमेज अपलोड हैंडलर (Cloudinary के लिए नए API का उपयोग)
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  // Handle delete service
-  const handleDelete = (id) => {
-    if (window.confirm("क्या आप वाकई इस सेवा को हटाना चाहते हैं?")) {
-      setServices(services.filter((item) => item.id !== id));
+    // फाइल का साइज चेक करना (2MB से ज्यादा नहीं होना चाहिए)
+    if (file.size > 2 * 1024 * 1024) {
+      alert("फाइल का आकार 2MB से कम होना चाहिए");
+      return;
+    }
+
+    const uploadData = new FormData();
+    uploadData.append("image", file);
+
+    try {
+      setIsUploading(true);
+      // नए 'api' इंस्टेंस का उपयोग, यह हेडर में टोकन अपने आप भेज देगा
+      const res = await api.post('/upload', uploadData);
+      if (res.data.success) {
+        setFormData(prev => ({ ...prev, imageUrl: res.data.imageUrl }));
+        if (onSave) onSave("फोटो सफलतापूर्वक अपलोड हो गई!");
+      }
+    } catch (err) {
+      console.error("इमेज अपलोड विफल:", err);
+      alert("इमेज अपलोड करने में समस्या आई। कृपया पुनः प्रयास करें।");
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  // Handle form submission (Add or Update)
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  // ३. लाइव डेटाबेस के साथ डेटा सिंक करना
+  const syncWithDatabase = async (updatedList) => {
+    try {
+      // पुराने 'axios.put' को हटाकर नए 'api.put' का उपयोग किया गया है
+      const response = await api.put('/content/services', updatedList);
+      if (response.data.success && onSave) {
+        onSave("सेवाएं लाइव डेटाबेस पर अपडेट हो गई हैं!");
+      }
+    } catch (error) {
+      console.error("डेटाबेस सिंक विफल:", error);
+      if (onSave) onSave("डेटाबेस सिंक विफल रहा।");
+    }
+  };
 
+  // नया फॉर्म खोलने के लिए हैंडलर
+  const handleCreateOpen = () => {
+    setEditingService(null);
+    setFormData({ titleHindi: "", titleEnglish: "", description: "", icon: "Sparkles", imageUrl: "" });
+    setIsModalOpen(true);
+  };
+
+  // फॉर्म सबमिट (सेव या अपडेट) करने का लॉजिक
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (isUploading) return alert("कृपया इमेज अपलोड होने तक प्रतीक्षा करें।");
+
+    let updatedServices;
     if (editingService) {
-      // Update existing item
-      setServices(
-        services.map((item) =>
-          item.id === editingService.id ? { ...item, ...formData } : item
-        )
+      // अगर पहले से मौजूद सर्विस को एडिट कर रहे हैं
+      updatedServices = services.map((item) =>
+        item.id === editingService.id ? { ...item, ...formData } : item
       );
     } else {
-      // Create new item with a unique ID
+      // अगर नई सर्विस जोड़ रहे हैं, तो नई आईडी जनरेट करना
       const newService = {
         id: services.length > 0 ? Math.max(...services.map((s) => s.id)) + 1 : 1,
         ...formData,
       };
-      setServices([...services, newService]);
+      updatedServices = [...services, newService];
     }
 
+    setServices(updatedServices);
     setIsModalOpen(false);
+    await syncWithDatabase(updatedServices); // बदलावों को सीधे डेटाबेस में सिंक करें
   };
 
+  // सर्विस डिलीट करने का हैंडलर
+  const handleDelete = async (id) => {
+    if (window.confirm("क्या आप इस सर्विस को हटाना चाहते हैं?")) {
+      const updated = services.filter((item) => item.id !== id);
+      setServices(updated);
+      await syncWithDatabase(updated); // डिलीट के बाद डेटाबेस सिंक करें
+    }
+  };
+
+  // लोडिंग स्क्रीन
+  if (isLoading) return <div className="flex justify-center py-20 text-saffron"><Loader2 className="animate-spin" /></div>;
+
   return (
-    <div className="min-h-screen bg-[#fffaf3] p-6 text-darkbrown font-sans">
-      {/* Header Management Bar */}
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center border-b border-saffron/20 pb-6 mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-darkbrown amaranth-bold">
-            डैशबोर्ड: सेवाएं प्रबंधन (Services Management)
-          </h1>
-          <p className="text-sm text-brown/70 mt-1">
-            यहाँ से आप मुख्य वेबसाइट की सेवाओं को जोड़, बदल या हटा सकते हैं।
-          </p>
-        </div>
-        <button
-          onClick={handleCreateOpen}
-          className="flex items-center gap-2 bg-saffron text-white font-medium py-3 px-6 rounded-xl shadow-md hover:bg-saffron/90 transition-all duration-200 transform active:scale-95"
-        >
-          <Plus size={18} /> नई सेवा जोड़ें
+    <div className="space-y-8 pb-12">
+      {/* हेडर सेक्शन */}
+      <div className="flex items-center justify-between gap-4 border-b border-white/5 pb-4">
+        <h3 className="text-2xl font-bold text-darkbrown amita-bold flex items-center gap-2.5">
+          <Sparkles className="w-6 h-6 text-saffron" /> सेवा प्रबंधन
+        </h3>
+        <button onClick={handleCreateOpen} className="bg-saffron text-[#240a00] px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer">
+          <Plus className="w-4 h-4" /> नई सेवा जोड़ें
         </button>
       </div>
 
-      {/* Grid List of Editable Services */}
-      <div className="max-w-7xl mx-auto grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <AnimatePresence>
-          {services.map((service) => {
-            const Icon = iconMap[service.icon];
-            return (
-              <motion.div
-                key={service.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="bg-white rounded-2xl border border-saffron/10 shadow-sm overflow-hidden flex flex-col justify-between"
-              >
-                <div>
-                  {/* Card Image Preview Banner */}
-                  <div className="relative h-40 bg-gray-100">
-                    <img
-                      src={service.imageUrl || "https://images.unsplash.com/photo-1609137144813-7d9921239bf0"}
-                      alt={service.titleEnglish}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm py-1 px-3 rounded-full text-xs font-bold text-saffron">
-                      ID: #{service.id}
-                    </div>
-                    <div className="absolute top-3 right-3 bg-saffron p-2 rounded-full text-white shadow-md">
-                      {Icon ? <Icon size={18} /> : <Sparkles size={18} />}
-                    </div>
-                  </div>
-
-                  {/* Service Text Content */}
-                  <div className="p-5">
-                    <h3 className="text-lg font-bold text-darkbrown mb-0.5">
-                      {service.titleHindi}
-                    </h3>
-                    <p className="text-xs font-semibold text-saffron uppercase tracking-wider mb-2">
-                      {service.titleEnglish}
-                    </p>
-                    <p className="text-sm text-brown/80 line-clamp-3 leading-relaxed">
-                      {service.description}
-                    </p>
-                  </div>
+      {/* सेवाओं की ग्रिड लिस्ट */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {services.map((service) => {
+          const Icon = iconMap[service.icon] || Sparkles;
+          return (
+            <div key={service.id} className="bg-[#240a00] border border-white/5 rounded-2xl overflow-hidden flex flex-col shadow-lg">
+              <div className="h-40 relative bg-black/40">
+                <img src={service.imageUrl || "https://via.placeholder.com/400x300?text=No+Image"} alt="" className="w-full h-full object-cover opacity-80" />
+                <div className="absolute top-3 right-3 bg-saffron text-[#240a00] p-2 rounded-xl"><Icon className="w-4 h-4" /></div>
+              </div>
+              <div className="p-5">
+                <h5 className="text-lg font-bold text-cream amita-bold">{service.titleHindi}</h5>
+                <p className="text-xs text-[#f3d9b1]/70 line-clamp-2 mt-2">{service.description}</p>
+                <div className="mt-4 flex gap-2">
+                  <button onClick={() => { setEditingService(service); setFormData(service); setIsModalOpen(true); }} className="flex-1 border border-saffron/30 text-saffron py-2 rounded-xl text-xs flex items-center justify-center gap-1 hover:bg-saffron/10 transition-all"><Edit3 size={14}/> Edit</button>
+                  <button onClick={() => handleDelete(service.id)} className="bg-red-500/10 text-red-400 p-2 rounded-xl hover:bg-red-500 hover:text-white transition-all"><Trash2 size={16}/></button>
                 </div>
-
-                {/* Management Action Buttons */}
-                <div className="px-5 pb-5 pt-2 flex items-center gap-3 border-t border-gray-50 bg-gray-50/50">
-                  <button
-                    onClick={() => handleEditOpen(service)}
-                    className="flex-1 flex items-center justify-center gap-2 border border-saffron text-saffron hover:bg-saffron hover:text-white transition-all py-2 px-3 rounded-xl text-sm font-medium"
-                  >
-                    <Edit3 size={15} /> संपादन (Edit)
-                  </button>
-                  <button
-                    onClick={() => handleDelete(service.id)}
-                    className="flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all p-2 rounded-xl"
-                    title="हटाएं"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* CRUD Action Overlay Modal */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, y: 50, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 50, scale: 0.95 }}
-              className="bg-white rounded-[2rem] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-saffron/20"
-            >
-              {/* Modal Header */}
-              <div className="p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
-                <h2 className="text-xl font-bold text-darkbrown">
-                  {editingService ? "सेवा विवरण संपादित करें" : "नई पूजा सेवा जोड़ें"}
-                </h2>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
-                >
-                  <X size={20} />
-                </button>
+      {/* नया/एडिट करने का पॉपअप (Modal) */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#240a00] border border-white/10 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
+            <div className="p-5 border-b border-white/5 flex justify-between items-center text-saffron font-bold">
+              <span>{editingService ? "सेवा संपादित करें" : "नई वैदिक सेवा"}</span>
+              <X className="cursor-pointer" onClick={() => setIsModalOpen(false)} />
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+              {/* इमेज अपलोड करने का मुख्य सेक्शन */}
+              <div className="space-y-2">
+                <label className="text-xs text-[#f3d9b1]/70 block">सेवा की फोटो (Upload Image)</label>
+                <div className="relative group overflow-hidden rounded-xl border-2 border-dashed border-white/10 h-32 flex items-center justify-center bg-white/5">
+                  {formData.imageUrl ? (
+                    <>
+                      <img src={formData.imageUrl} className="w-full h-full object-cover opacity-60" alt="Preview" />
+                      <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+                         <button type="button" onClick={() => fileInputRef.current.click()} className="p-2 bg-saffron text-darkbrown rounded-full"><Upload size={16}/></button>
+                         <button type="button" onClick={() => setFormData({...formData, imageUrl: ""})} className="p-2 bg-red-500 text-white rounded-full"><Trash2 size={16}/></button>
+                      </div>
+                    </>
+                  ) : (
+                    <button type="button" onClick={() => fileInputRef.current.click()} className="flex flex-col items-center gap-2 text-[#f3d9b1]/40 hover:text-saffron transition-colors">
+                      {isUploading ? <Loader2 className="animate-spin" /> : <Upload size={24} />}
+                      <span className="text-xs">{isUploading ? "अपलोड हो रहा है..." : "फोटो चुनें"}</span>
+                    </button>
+                  )}
+                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+                </div>
+                <input type="text" placeholder="या इमेज URL यहाँ पेस्ट करें" value={formData.imageUrl} onChange={(e) => setFormData({...formData, imageUrl: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-[10px] text-cream outline-none font-mono" />
               </div>
 
-              {/* Form Body */}
-              <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold mb-1 text-brown">
-                      शीर्षक (Hindi) *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron bg-gray-50/50"
-                      placeholder="जैसे: महालक्ष्मी महायज्ञ"
-                      value={formData.titleHindi}
-                      onChange={(e) => setFormData({ ...formData, titleHindi: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-1 text-brown">
-                      Title (English) *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron bg-gray-50/50"
-                      placeholder="e.g. Maha Lakshmi Yagya"
-                      value={formData.titleEnglish}
-                      onChange={(e) => setFormData({ ...formData, titleEnglish: e.target.value })}
-                    />
-                  </div>
-                </div>
+              {/* टाइटल्स इनपुट */}
+              <div className="grid grid-cols-2 gap-4">
+                <input type="text" placeholder="Hindi Title" required value={formData.titleHindi} onChange={(e) => setFormData({...formData, titleHindi: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-cream text-sm outline-none focus:border-saffron/50" />
+                <input type="text" placeholder="English Title" required value={formData.titleEnglish} onChange={(e) => setFormData({...formData, titleEnglish: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-cream text-sm outline-none focus:border-saffron/50" />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-semibold mb-1 text-brown">
-                    विवरण (Description) *
-                  </label>
-                  <textarea
-                    required
-                    rows={3}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron bg-gray-50/50 resize-none"
-                    placeholder="इस पूजा अनुष्ठान के महत्व और विधि के बारे में लिखें..."
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  />
-                </div>
+              {/* आइकॉन चुनने का ड्रापडाउन */}
+              <div className="space-y-1">
+                <label className="text-[10px] text-saffron uppercase tracking-widest">Icon Selection</label>
+                <select value={formData.icon} onChange={(e) => setFormData({...formData, icon: e.target.value})} className="w-full bg-[#1c0800] border border-white/10 rounded-xl p-3 text-cream text-sm outline-none">
+                  {Object.keys(iconMap).map(ico => <option key={ico} value={ico}>{ico}</option>)}
+                </select>
+              </div>
 
-                <div>
-                  <label className="block text-sm font-semibold mb-1 text-brown">
-                    इमेज URL (Image Link) *
-                  </label>
-                  <input
-                    type="url"
-                    required
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron bg-gray-50/50 text-xs"
-                    placeholder="https://example.com/image.jpg"
-                    value={formData.imageUrl}
-                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  />
-                </div>
+              {/* विवरण (Description) */}
+              <textarea rows="3" placeholder="सेवा का विस्तृत विवरण..." required value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-cream text-sm outline-none focus:border-saffron/50" />
 
-                {/* Grid Icon Picker */}
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-brown">
-                    सिंबल / आइकॉन चुनें (Select Icon)
-                  </label>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    {Object.keys(iconMap).map((iconName) => {
-                      const CurrentIcon = iconMap[iconName];
-                      const isSelected = formData.icon === iconName;
-                      return (
-                        <button
-                          type="button"
-                          key={iconName}
-                          onClick={() => setFormData({ ...formData, icon: iconName })}
-                          className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
-                            isSelected
-                              ? "bg-saffron text-white shadow-md scale-105"
-                              : "bg-white border border-gray-200 text-brown hover:border-saffron/50"
-                          }`}
-                        >
-                          <CurrentIcon size={20} />
-                          <span className="text-[10px] block opacity-80 truncate max-w-full">
-                            {iconName}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Modal Actions Footer */}
-                <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-5 py-2.5 rounded-xl text-gray-500 hover:bg-gray-100 text-sm font-medium"
-                  >
-                    रद्द करें (Cancel)
-                  </button>
-                  <button
-                    type="submit"
-                    className="bg-saffron text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-saffron/90 flex items-center gap-2 shadow-md"
-                  >
-                    <Check size={16} /> सहेजें (Save Changes)
-                  </button>
-                </div>
-              </form>
-            </motion.div>
+              {/* बटन्स */}
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 text-cream text-sm">रद्द करें</button>
+                <button type="submit" disabled={isUploading} className="flex-1 bg-saffron text-[#240a00] py-3 rounded-xl font-bold hover:bg-orange-500 transition-all disabled:opacity-50">
+                  {editingService ? "अपडेट करें" : "सुरक्षित करें"}
+                </button>
+              </div>
+            </form>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
-};
-
-export default AdminServices;
+}

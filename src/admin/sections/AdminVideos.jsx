@@ -1,33 +1,37 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {faYoutube } from "@fortawesome/free-brands-svg-icons"
-import { 
-  Play, 
-  Plus, 
-  Trash2, 
-  Edit3, 
-  X, 
-  Check, 
-//   Youtube, 
-  Type, 
-  FileText, 
-  Link2, 
-  Image as ImageIcon 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faYoutube } from "@fortawesome/free-brands-svg-icons";
+import {
+  Play,
+  Plus,
+  Trash2,
+  Edit3,
+  Upload,
+  X,
+  Check,
+  Type,
+  Link2,
+  Image as ImageIcon,
+  Loader2,
 } from "lucide-react";
-import { videoData as initialVideoData } from "../../data/videoData.js";
+
+// Using the custom API instance (with interceptors and baseURL)
+import api from "../../api/axios.js";
+// Local fallback data
+import { videoData as fallbackData } from "../../data/videoData.js";
 
 export const AdminVideos = () => {
-  // Extract configuration metadata alongside initial data structure
-  const [sectionTitle, setSectionTitle] = useState(initialVideoData.sectionTitle);
-  const [sectionSubtitle, setSectionSubtitle] = useState(initialVideoData.sectionSubtitle);
-  const [videos, setVideos] = useState(initialVideoData.videos);
-  
-  // Overlay Modals management variables
+  const [sectionTitle, setSectionTitle] = useState(fallbackData.sectionTitle);
+  const [sectionSubtitle, setSectionSubtitle] = useState(fallbackData.sectionSubtitle);
+  const [videos, setVideos] = useState(fallbackData.videos);
+
+  const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState(null);
   const [previewVideoUrl, setPreviewVideoUrl] = useState(null);
 
-  // Default clean form schema
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -35,177 +39,219 @@ export const AdminVideos = () => {
     videoUrl: "",
   });
 
-  // Automatically extracts clean YouTube Embed code structures if user paste raw address bar links
-  const normalizeYoutubeEmbed = (url) => {
-    if (!url) return "";
-    // If it's already an embed link, return as-is
-    if (url.includes("youtube.com/embed/")) return url;
-    
-    let videoId = "";
-    if (url.includes("youtu.be/")) {
-      videoId = url.split("youtu.be/")[1]?.split(/[?#]/)[0];
-    } else if (url.includes("v=")) {
-      videoId = url.split("v=")[1]?.split(/[&?#]/)[0];
-    } else if (url.includes("embed/")) {
-      videoId = url.split("embed/")[1]?.split(/[?#]/)[0];
+  // --- 1. FETCH DATA FROM DATABASE ---
+  useEffect(() => {
+    const fetchVideoContent = async () => {
+      try {
+        // Interceptor handles baseURL and Authorization headers
+        const res = await api.get("/content/videos");
+
+        const remoteValues = res.data?.data?.values;
+
+        if (remoteValues) {
+          setSectionTitle(remoteValues.sectionTitle || fallbackData.sectionTitle);
+          setSectionSubtitle(remoteValues.sectionSubtitle || fallbackData.sectionSubtitle);
+          setVideos(
+            remoteValues.videos?.length > 0
+              ? remoteValues.videos
+              : fallbackData.videos,
+          );
+        }
+      } catch (err) {
+        console.warn("Backend unavailable, using local fallback data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchVideoContent();
+  }, []);
+
+  // --- 2. IMAGE UPLOAD LOGIC (Cloudinary via Backend) ---
+  const handleThumbnailUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const uploadData = new FormData();
+    uploadData.append("image", file);
+
+    try {
+      setIsSaving(true);
+      // 'api' automatically attaches the JWT from localStorage
+      const res = await api.post("/upload", uploadData);
+      if (res.data.success) {
+        setFormData((prev) => ({ ...prev, thumbnail: res.data.imageUrl }));
+      }
+    } catch (err) {
+      alert("Image upload failed!");
+    } finally {
+      setIsSaving(false);
     }
-    
-    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
   };
 
-  // Automatically pulls standard high-quality YouTube image assets if no custom thumb is supplied
-  const autoGenerateThumbnail = (embedUrl) => {
-    if (!embedUrl || !embedUrl.includes("embed/")) return "";
-    const videoId = embedUrl.split("embed/")[1]?.split(/[?#]/)[0];
-    return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : "";
+  // --- 3. SYNC WITH DATABASE (Update Entire Section) ---
+  const syncWithServer = async (updatedVideos, updatedTitle, updatedSubtitle) => {
+    try {
+      setIsSaving(true);
+      const payload = {
+        sectionTitle: updatedTitle || sectionTitle,
+        sectionSubtitle: updatedSubtitle || sectionSubtitle,
+        videos: updatedVideos || videos,
+      };
+
+      // Updates the entire video section in the database
+      await api.put("/content/videos", payload);
+    } catch (err) {
+      console.error("Save failed:", err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
+  // --- 4. FORM HANDLERS ---
   const handleCreateOpen = () => {
-    setEditingVideo(null);
-    setFormData({ title: "", description: "", thumbnail: "", videoUrl: "" });
-    setIsModalOpen(true);
-  };
-
-  const handleEditOpen = (video) => {
-    setEditingVideo(video);
+    setEditingVideo(null); // Reset editing state for new entry
     setFormData({
-      title: video.title,
-      description: video.description,
-      thumbnail: video.thumbnail,
-      videoUrl: video.videoUrl,
+      title: "",
+      description: "",
+      thumbnail: "",
+      videoUrl: "",
     });
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("क्या आप वाकई इस वीडियो को हटाना चाहते हैं?")) {
-      setVideos(videos.filter((item) => item.id !== id));
-    }
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const cleanEmbedUrl = normalizeYoutubeEmbed(formData.videoUrl);
-    const finalThumbnail = formData.thumbnail.trim() || autoGenerateThumbnail(cleanEmbedUrl);
-
+    
+    // Format the YouTube URL into an embeddable format
     const packedData = {
       ...formData,
-      videoUrl: cleanEmbedUrl,
-      thumbnail: finalThumbnail || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe",
+      id: editingVideo ? editingVideo.id : Date.now(),
+      videoUrl: formData.videoUrl.includes("embed")
+        ? formData.videoUrl
+        : `https://www.youtube.com/embed/${formData.videoUrl.split("v=")[1] || formData.videoUrl.split("/").pop()}`,
     };
 
+    let updatedList;
     if (editingVideo) {
-      setVideos(videos.map((item) => (item.id === editingVideo.id ? { ...item, ...packedData } : item)));
+      updatedList = videos.map((v) => (v.id === editingVideo.id ? packedData : v));
     } else {
-      const newVideo = {
-        id: videos.length > 0 ? Math.max(...videos.map((v) => v.id)) + 1 : 1,
-        ...packedData,
-      };
-      setVideos([...videos, newVideo]);
+      updatedList = [...videos, packedData];
     }
+
+    setVideos(updatedList);
     setIsModalOpen(false);
+    await syncWithServer(updatedList); // Push changes to DB
   };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this video?")) {
+      const updatedList = videos.filter((v) => v.id !== id);
+      setVideos(updatedList);
+      await syncWithServer(updatedList);
+    }
+  };
+
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin text-saffron" size={48} />
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-[#fffaf3] p-6 text-darkbrown font-sans">
-      
-      {/* SECTION 1: Section Title & Subtitle Configuration Banner */}
+      {/* HEADER SETTINGS SECTION */}
       <div className="max-w-7xl mx-auto bg-white border border-saffron/20 rounded-3xl p-6 mb-8 shadow-sm">
-        <h2 className="text-lg font-bold text-darkbrown flex items-center gap-2 mb-4">
-          <Type size={18} className="text-saffron" /> हेडर कॉन्फ़िगरेशन (Section Header Customization)
-        </h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            <Type size={18} className="text-saffron" /> Header Settings
+          </h2>
+          <button
+            onClick={() => syncWithServer()}
+            className="text-xs bg-darkbrown text-white px-6 py-2 rounded-xl hover:bg-black transition-all flex items-center gap-2"
+          >
+            {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+            Save Title & Subtitle
+          </button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-brown/80">मुख्य शीर्षक (Hindi Title)</label>
-            <input 
-              type="text" 
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron text-sm bg-gray-50/50"
-              value={sectionTitle} 
-              onChange={(e) => setSectionTitle(e.target.value)} 
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-1 text-brown/80">उपशीर्षक (Subtitle Description)</label>
-            <input 
-              type="text" 
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron text-sm bg-gray-50/50"
-              value={sectionSubtitle} 
-              onChange={(e) => setSectionSubtitle(e.target.value)} 
-            />
-          </div>
+          <input
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm"
+            value={sectionTitle}
+            onChange={(e) => setSectionTitle(e.target.value)}
+            placeholder="Main Section Title"
+          />
+          <input
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm"
+            value={sectionSubtitle}
+            onChange={(e) => setSectionSubtitle(e.target.value)}
+            placeholder="Main Section Subtitle"
+          />
         </div>
       </div>
 
-      {/* SECTION 2: Action Sub-Header */}
+      {/* TOOLBAR AND ADD BUTTON */}
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center border-b border-saffron/10 pb-6 mb-8 gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-darkbrown flex items-center gap-2">
-            <faYoutube className="text-red-600" /> वीडियो गैलरी प्रबंधन (Video Content Items)
-          </h1>
-          <p className="text-xs text-brown/60 mt-0.5">
-            वेबसाइट की वीडियो गैलरी में दिखाए जाने वाले वीडियो, उनकी लिंक और थंबनेल बदलें।
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <FontAwesomeIcon icon={faYoutube} className="text-red-600" /> Video Gallery
+        </h1>
         <button
           onClick={handleCreateOpen}
-          className="flex items-center gap-2 bg-saffron text-white font-medium py-3 px-6 rounded-xl shadow-md hover:bg-saffron/90 transition-all duration-200 transform active:scale-95 text-sm"
+          className="bg-saffron text-white py-3 px-6 rounded-xl shadow-md text-sm font-medium flex items-center gap-2"
         >
-          <Plus size={16} /> नया वीडियो जोड़ें
+          <Plus size={16} /> Add New Video
         </button>
       </div>
 
-      {/* SECTION 3: Content List Grid */}
+      {/* VIDEO GRID LISTING */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <AnimatePresence>
-          {videos.map((video, index) => (
+          {videos.map((video) => (
             <motion.div
               key={video.id}
               layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-white rounded-[2rem] border border-saffron/10 shadow-sm overflow-hidden flex flex-col justify-between group"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="bg-white rounded-[2rem] border border-saffron/10 shadow-sm overflow-hidden flex flex-col group"
             >
-              <div>
-                {/* Simulated Grid Preview Element from production code block */}
-                <div className="relative h-48 overflow-hidden bg-black">
-                  <img 
-                    src={video.thumbnail} 
-                    alt={video.title} 
-                    className="w-full h-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center cursor-pointer" onClick={() => setPreviewVideoUrl(video.videoUrl)}>
-                    <div className="w-12 h-12 bg-saffron/90 rounded-full flex items-center justify-center text-darkbrown shadow-lg hover:scale-110 transition-transform duration-200">
-                      <Play fill="currentColor" size={18} />
-                    </div>
-                  </div>
-                  <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white font-mono text-[10px] py-1 px-2.5 rounded-full">
-                    क्रम: {index + 1}
-                  </div>
-                </div>
-
-                <div className="p-6">
-                  <h3 className="text-lg font-bold text-saffron mb-1.5 truncate">{video.title}</h3>
-                  <p className="text-xs text-brown/70 line-clamp-2 leading-relaxed min-h-[2.5rem]">
-                    {video.description}
-                  </p>
-                  <div className="mt-4 flex items-center gap-1.5 text-[11px] text-brown/50 bg-gray-50 p-2 rounded-lg border border-gray-100 overflow-hidden whitespace-nowrap text-ellipsis">
-                    <Link2 size={12} className="shrink-0" /> {video.videoUrl}
+              {/* Thumbnail and Play Overlay */}
+              <div className="relative h-48 overflow-hidden bg-black">
+                <img
+                  src={video.thumbnail}
+                  alt={video.title}
+                  className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform"
+                />
+                <div
+                  className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                  onClick={() => setPreviewVideoUrl(video.videoUrl)}
+                >
+                  <div className="w-12 h-12 bg-saffron/90 rounded-full flex items-center justify-center shadow-lg">
+                    <Play fill="currentColor" size={18} />
                   </div>
                 </div>
               </div>
+              
+              <div className="p-6">
+                <h3 className="text-lg font-bold text-saffron mb-1 truncate">{video.title}</h3>
+                <p className="text-xs text-brown/70 line-clamp-2">{video.description}</p>
+              </div>
 
-              {/* Action Toolbar */}
-              <div className="px-6 pb-6 pt-2 flex items-center gap-3 border-t border-gray-50 bg-gray-50/30">
+              {/* Action Buttons */}
+              <div className="px-6 pb-6 flex gap-3">
                 <button
-                  onClick={() => handleEditOpen(video)}
-                  className="flex-1 flex items-center justify-center gap-1.5 border border-saffron text-saffron hover:bg-saffron hover:text-white transition-all py-2 px-3 rounded-xl text-xs font-semibold"
+                  onClick={() => {
+                    setEditingVideo(video);
+                    setFormData(video);
+                    setIsModalOpen(true);
+                  }}
+                  className="flex-1 border border-saffron text-saffron py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 hover:bg-saffron hover:text-white transition-all"
                 >
-                  <Edit3 size={13} /> संपादन करें
+                  <Edit3 size={13} /> Edit
                 </button>
                 <button
                   onClick={() => handleDelete(video.id)}
-                  className="bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all p-2 rounded-xl border border-red-100 hover:border-transparent"
+                  className="bg-red-50 text-red-600 p-2 rounded-xl hover:bg-red-600 hover:text-white transition-all"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -215,79 +261,113 @@ export const AdminVideos = () => {
         </AnimatePresence>
       </div>
 
-      {/* MODAL 1: Create / Edit Entity Management Overlays */}
+      {/* FORM MODAL (ADD/EDIT) */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 bg-black/60 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
             <motion.div
-              initial={{ opacity: 0, y: 30, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 30, scale: 0.98 }}
-              className="bg-white rounded-[2rem] shadow-2xl max-w-xl w-full max-h-[92vh] overflow-y-auto border border-saffron/20"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-[2rem] max-w-xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
             >
-              <div className="p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
-                <h2 className="text-lg font-bold text-darkbrown">
-                  {editingVideo ? "वीडियो विवरण बदलें" : "नया यूट्यूब वीडियो जोड़ें"}
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-bold">
+                  {editingVideo ? "Edit Video" : "Add New Video"}
                 </h2>
-                <button onClick={() => setIsModalOpen(false)} className="p-1 rounded-full hover:bg-gray-100 text-gray-400">
-                  <X size={18} />
+                <button onClick={() => setIsModalOpen(false)}>
+                  <X size={20} />
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div>
-                  <label className="text-xs font-bold text-brown flex items-center gap-1 mb-1"><Type size={14}/> वीडियो का शीर्षक (Video Title) *</label>
-                  <input
-                    type="text" required
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron text-sm bg-gray-50/50"
-                    placeholder="जैसे: महा रुद्राभिषेक पूजा..."
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  />
-                </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Video Title"
+                  required
+                  className="w-full px-4 py-2.5 rounded-xl border focus:ring-1 focus:ring-saffron outline-none"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                />
+                <textarea
+                  placeholder="Short Description"
+                  required
+                  rows={2}
+                  className="w-full px-4 py-2.5 rounded-xl border resize-none focus:ring-1 focus:ring-saffron outline-none"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                />
+                <input
+                  type="text"
+                  placeholder="YouTube Video URL"
+                  required
+                  className="w-full px-4 py-2.5 rounded-xl border focus:ring-1 focus:ring-saffron outline-none"
+                  value={formData.videoUrl}
+                  onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                />
 
-                <div>
-                  <label className="text-xs font-bold text-brown flex items-center gap-1 mb-1"><FileText size={14}/> संक्षिप्त विवरण (Short Description) *</label>
-                  <textarea
-                    required rows={2}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron text-sm bg-gray-50/50 resize-none"
-                    placeholder="पूजा अनुष्ठान या मंत्रोच्चार के बारे में एक या दो पंक्तियाँ लिखें..."
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  />
-                </div>
+                {/* THUMBNAIL MANAGEMENT */}
+                <div className="space-y-3">
+                  <label className="text-xs font-bold text-brown flex items-center gap-1">
+                    <ImageIcon size={14} /> Thumbnail Preview
+                  </label>
 
-                <div>
-                  <label className="text-xs font-bold text-brown flex items-center gap-1 mb-1"><Link2 size={14}/> यूट्यूब वीडियो लिंक (YouTube URL) *</label>
-                  <input
-                    type="text" required
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron text-sm bg-gray-50/50"
-                    placeholder="जैसे: https://www.youtube.com/watch?v=... या शेयर लिंक"
-                    value={formData.videoUrl}
-                    onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                  />
-                </div>
+                  {formData.thumbnail && (
+                    <div className="relative w-full h-32 rounded-xl overflow-hidden border">
+                      <img src={formData.thumbnail} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, thumbnail: "" })}
+                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  )}
 
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="text-xs font-bold text-brown flex items-center gap-1"><ImageIcon size={14}/> थंबनेल इमेज लिंक (Custom Thumbnail URL)</label>
-                    <span className="text-[10px] text-gray-400 font-medium">(खाली छोड़ने पर यूट्यूब से स्वतः ले लेगा)</span>
+                  <div className="grid grid-cols-1 gap-3">
+                    <input
+                      type="file"
+                      id="thumb-upload"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleThumbnailUpload}
+                    />
+                    <label
+                      htmlFor="thumb-upload"
+                      className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer hover:bg-saffron/5 transition-all text-sm text-gray-500"
+                    >
+                      <Upload size={18} /> {formData.thumbnail ? "Change Image" : "Upload Image"}
+                    </label>
+
+                    <div className="relative">
+                      <Link2 size={14} className="absolute left-3 top-3 text-gray-400" />
+                      <input
+                        type="url"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border text-xs"
+                        placeholder="Or paste external Image URL..."
+                        value={formData.thumbnail.startsWith("data:") ? "" : formData.thumbnail}
+                        onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
+                      />
+                    </div>
                   </div>
-                  <input
-                    type="url"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron text-sm bg-gray-50/50 text-xs font-mono"
-                    placeholder="https://example.com/custom-thumbnail.jpg"
-                    value={formData.thumbnail}
-                    onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
-                  />
                 </div>
 
-                <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl text-gray-500 hover:bg-gray-50 text-xs font-medium">
-                    रद्द करें
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="text-gray-400 text-sm"
+                  >
+                    Cancel
                   </button>
-                  <button type="submit" className="bg-saffron text-white px-5 py-2 rounded-xl text-xs font-medium hover:bg-saffron/90 flex items-center gap-1.5 shadow-md">
-                    <Check size={14} /> डेटा सहेजें (Save)
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="bg-saffron text-white px-6 py-2 rounded-xl text-sm flex items-center gap-2 shadow-md disabled:opacity-50"
+                  >
+                    {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                    Save Changes
                   </button>
                 </div>
               </form>
@@ -296,27 +376,24 @@ export const AdminVideos = () => {
         )}
       </AnimatePresence>
 
-      {/* MODAL 2: Interactive Sandbox Video Stream Player */}
+      {/* FULLSCREEN VIDEO PREVIEW OVERLAY */}
       <AnimatePresence>
         {previewVideoUrl && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/95 p-4 md:p-10 backdrop-blur-sm">
-            <button onClick={() => setPreviewVideoUrl(null)} className="absolute top-6 right-6 text-white hover:text-saffron transition-colors">
-              <X size={32} />
-            </button>
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-4xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+          <div
+            className="fixed inset-0 z-[120] flex items-center justify-center bg-black/95 p-4"
+            onClick={() => setPreviewVideoUrl(null)}
+          >
+            <div
+              className="w-full max-w-4xl aspect-video rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+              onClick={(e) => e.stopPropagation()}
             >
               <iframe
                 src={previewVideoUrl}
-                title="Admin Preview Player"
                 className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
+                title="YouTube Preview"
               />
-            </motion.div>
+            </div>
           </div>
         )}
       </AnimatePresence>

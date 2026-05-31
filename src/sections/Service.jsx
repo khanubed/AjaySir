@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react"; // Added useState & useEffect
 import { motion } from "framer-motion";
 
 // Replace this path with your actual image path
@@ -17,10 +17,10 @@ import {
   Home,
   Stars,
   HeartPulse,
-  ArrowRight, // newly added for interaction
 } from "lucide-react";
 
-import { services } from "../data/services";
+// Local fallback data
+import { services as fallbackServices } from "../data/services";
 
 const iconMap = {
   Sparkles,
@@ -38,13 +38,38 @@ const iconMap = {
 };
 
 const Service = () => {
+  // State to hold services data
+  const [servicesData, setServicesData] = useState(fallbackServices);
+
+  // API Call implementation
+  useEffect(() => {
+    const fetchLiveServices = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/content/services");
+        const json = await response.json();
+        
+        // Agar response sahi hai aur array khali nahi hai
+        if (json.success && json.data && json.data.values && json.data.values.length > 0) {
+          setServicesData(json.data.values);
+        } else {
+          console.warn("Backend services empty or invalid, using local data.js");
+        }
+      } catch (error) {
+        console.error("CMS Server error. Falling back to local services data.", error);
+        // Catch block trigger hone par automatically fallbackServices use honge (kyunki state default wahi hai)
+      }
+    };
+
+    fetchLiveServices();
+  }, []);
+
   return (
     <section
       id="services"
       className="bg-[#fffaf3] py-20 px-4 text-brown relative overflow-hidden"
     >
       <div className="text-center md:mt-9 mb-16 relative z-10">
-        <h2 className="text-3xl md:text-5xl amaranth-bold text-darkbrown font-bold mb-4">
+        <h2 className="text-3xl md:text-5xl amita-bold text-darkbrown font-bold mb-4">
           पवित्र वैदिक अनुष्ठान एवं आध्यात्मिक समाधान
         </h2>
 
@@ -54,12 +79,13 @@ const Service = () => {
       </div>
 
       <div className="max-w-7xl mx-auto grid gap-8 sm:grid-cols-2 lg:grid-cols-3 relative z-10">
-        {services.map((service, index) => {
-          const Icon = iconMap[service.icon];
+        {/* map using the state variable servicesData */}
+        {servicesData.map((service, index) => {
+          const Icon = iconMap[service.icon] || Sparkles; // Fallback icon if not found
 
           return (
             <motion.div
-              key={service.id}
+              key={service.id || index}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{
@@ -96,7 +122,6 @@ const Service = () => {
                 <p className="text-brown/70 be-vietnam-pro-regular leading-relaxed text-sm flex-1">
                   {service.description}
                 </p>
-
               </div>
             </motion.div>
           );

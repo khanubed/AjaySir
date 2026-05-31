@@ -1,21 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
-// डेटा लोड करने के लिए नए हेल्पर फंक्शन को इम्पोर्ट करें
+import axios from "axios";
+
+// Local data remains for "First Instance" loading
 import { getAboutData } from "../data/about.js";
 
 export default function About() {
-  // लाइव डेटा को स्टेट में मैनेज करें ताकि एडमिन पैनल के चेंजेस तुरंत सिंक हो सकें
-  const [aboutData, setAboutData] = useState(null);
+  // 1. Initial State: Load from local data immediately
+  const [aboutData, setAboutData] = useState(getAboutData());
+  const API_URL = "http://localhost:5000/api/content/about";
 
+  // 2. Fetch Logic: Update silently once backend responds
   useEffect(() => {
-    setAboutData(getAboutData());
-  }, []);
+    const fetchAboutContent = async () => {
+      try {
+        const res = await axios.get(API_URL);
+        const data = res.data?.data?.values;
+        
+        if (data) {
+          // Sync backend data to state
+          setAboutData(data);
+        }
+      } catch (err) {
+        console.warn("Backend fetch failed for About section, using local fallback.");
+      }
+    };
 
-  // जब तक डेटा लोड न हो, एक क्लीन स्केलेटन या खाली स्पेस दिखाएं
-  if (!aboutData) {
-    return <div className="bg-lightcream py-24 min-h-[60vh]" />;
-  }
+    fetchAboutContent();
+  }, []);
+  
+  // No "loading" return here to ensure instant render
+  if (!aboutData) return null;
 
   return (
     <section id="about" className="bg-lightcream py-24 px-4 overflow-hidden">
@@ -32,20 +48,26 @@ export default function About() {
           >
             <div className="overflow-hidden rounded-4xl shadow-2xl border border-brown/10 aspect-2/3 h-auto flex-wrap bg-brown/5">
               <img
-                src={aboutData.image || "https://www.shutterstock.com/image-photo/hindu-indian-pandit-looking-front-260nw-2626343377.jpg"}
-                alt="Pandit Ji"
-                className="w-full h-full object-cover transition-all duration-500"
+                src={aboutData.image}
+                alt="Pandit Ji Profile"
+                className="w-full h-full object-cover transition-all duration-700"
               />
             </div>
 
-            <div className="absolute bottom-6 -right-4 bg-cream backdrop-blur-md shadow-xl rounded-3xl max-md:p-3 p-6 border border-brown/10">
+            {/* Experience Badge */}
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="absolute bottom-6 -right-4 bg-cream backdrop-blur-md shadow-xl rounded-3xl max-md:p-3 p-6 border border-brown/10 z-20"
+            >
               <h3 className="text-3xl font-bold max-md:text-xl text-darkbrown">
                 {aboutData.stats.count}
               </h3>
               <p className="text-brown mt-1 max-md:text-xs font-semibold">
                 {aboutData.stats.label}
               </p>
-            </div>
+            </motion.div>
           </motion.div>
 
           {/* RIGHT SIDE: TEXT CONTENT BLOCK */}
@@ -79,7 +101,7 @@ export default function About() {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   viewport={{ once: true }}
-                  className="flex items-center gap-3 bg-lightcream rounded-2xl p-2 md:p-4 border border-brown/10 shadow-sm"
+                  className="flex items-center gap-3 bg-lightcream rounded-2xl p-2 md:p-4 border border-brown/10 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <CheckCircle2 size={22} className="text-saffron mt-1 shrink-0" />
                   <p className="text-darkbrown amaranth-regular max-md:text-sm font-medium">
@@ -99,7 +121,8 @@ export default function About() {
           viewport={{ once: true }}
           className="mt-24 bg-gradient-to-r from-darkbrown to-[#4a1d00] rounded-4xl p-10 md:p-16 text-center relative overflow-hidden"
         >
-          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')]" />
+          {/* Subtle pattern overlay */}
+          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] pointer-events-none" />
 
           <div className="relative z-10">
             <p className="uppercase max-md:text-md tracking-[4px] amaranth-regular text-saffron">
@@ -110,7 +133,7 @@ export default function About() {
               {aboutData.mission.heading}
             </h2>
 
-            <p className="text-[#f3d9b1] be-vietnam-pro-regular text-sm md:text-base leading-relaxed max-w-4xl mx-auto mt-8">
+            <p className="text-[#f3d9b1] be-vietnam-pro-regular text-sm md:text-base leading-relaxed max-w-4xl mx-auto mt-8 text-center">
               {aboutData.mission.description}
             </p>
           </div>

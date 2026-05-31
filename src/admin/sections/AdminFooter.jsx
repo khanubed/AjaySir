@@ -1,17 +1,40 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Layout, Save, RotateCcw, Check, Link2, Quote, MessageSquare, ShieldAlert } from "lucide-react";
-import { getLiveFooterData, saveLiveFooterData } from "../../data/footer.js";
+import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
+import { 
+  Layout, Save, RotateCcw, Link2, Quote, MessageSquare, ShieldAlert, Loader2 
+} from "lucide-react";
+
+// Fallback data
+import { getLiveFooterData } from "../../data/footer.js";
+import api from "../../api/axios.js";
 
 export default function AdminFooter() {
   const [footerData, setFooterData] = useState(null);
-  const [showToast, setShowToast] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // const API_URL = "http://localhost:5000/api/content/footer";
+
+  // --- 1. Fetch Footer Data from Backend ---
   useEffect(() => {
-    setFooterData(getLiveFooterData());
+    const fetchData = async () => {
+      try {
+        const res = await api.get('content/footer');
+        if (res.data?.data?.values) {
+          setFooterData(res.data.data.values);
+        } else {
+          setFooterData(getLiveFooterData());
+        }
+      } catch (err) {
+        console.warn("Backend fetch failed, using local fallback.");
+        setFooterData(getLiveFooterData());
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, []);
-
-  if (!footerData) return <div className="p-8 text-center text-brown">लोड हो रहा है...</div>;
 
   const handleTextChange = (field, value) => {
     setFooterData((prev) => ({ ...prev, [field]: value }));
@@ -23,58 +46,82 @@ export default function AdminFooter() {
     setFooterData((prev) => ({ ...prev, socialLinks: updatedSocials }));
   };
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    saveLiveFooterData(footerData);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+  // --- 2. Save Both Stats & Reviews to Backend ---
+  const handleSave = async (e) => {
+    if (e) e.preventDefault();
+    
+    const savePromise = api.put(`content/footer`, footerData);
+
+    toast.promise(savePromise, {
+      loading: 'फुटर अपडेट किया जा रहा है...',
+      success: <b>फुटर डेटा सफलतापूर्वक सुरक्षित किया गया!</b>,
+      error: <b>सेव करने में समस्या आई।</b>,
+    });
   };
 
-  const handleReset = () => {
-    if (window.confirm("क्या आप बदलावों को रद्द करके पिछला सुरक्षित डेटा वापस लाना चाहते हैं?")) {
-      setFooterData(getLiveFooterData());
-    }
+  const handleReset = async () => {
+    toast((t) => (
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-medium text-darkbrown">क्या आप बदलावों को रद्द करके पुराना डेटा वापस लाना चाहते हैं?</p>
+        <div className="flex gap-2 justify-end">
+          <button onClick={() => toast.dismiss(t.id)} className="text-xs text-brown px-2 py-1">नहीं</button>
+          <button 
+            onClick={async () => {
+              toast.dismiss(t.id);
+              setIsLoading(true);
+              try {
+                const res = await axios.get(API_URL);
+                if (res.data?.data?.values) {
+                  setFooterData(res.data.data.values);
+                  toast.success("डेटा रिस्टोर हो गया");
+                }
+              } catch (err) {
+                toast.error("रिसेट विफल रहा");
+              } finally {
+                setIsLoading(false);
+              }
+            }} 
+            className="bg-saffron text-white px-3 py-1 rounded-md text-xs font-bold"
+          >
+            हाँ, रिस्टोर करें
+          </button>
+        </div>
+      </div>
+    ), { duration: 5000 });
   };
+
+  if (isLoading) return (
+    <div className="flex items-center justify-center min-h-screen text-saffron bg-[#fffaf3]">
+      <Loader2 className="animate-spin mr-2" /> फुटर डेटा सिंक हो रहा है...
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#fffaf3] p-4 md:p-8 text-darkbrown font-sans">
+      <Toaster position="top-right" />
       
-      {/* Dynamic Action Toast */}
-      <AnimatePresence>
-        {showToast && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 right-6 z-50 bg-green-600 text-white px-6 py-3.5 rounded-2xl shadow-xl flex items-center gap-2 text-sm font-semibold"
-          >
-            <Check size={18} /> फुटर का डेटा सफलतापूर्वक सुरक्षित कर दिया गया है!
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <div className="max-w-4xl mx-auto space-y-6">
         
-        {/* Top Header Controls */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white border border-saffron/20 p-6 rounded-3xl shadow-sm gap-4">
+        {/* Top Header Controls - Sticky for better UX */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white border border-saffron/20 p-6 rounded-3xl shadow-sm gap-4 sticky top-4 z-40 backdrop-blur-md bg-white/90">
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-darkbrown flex items-center gap-2">
-              <Layout className="text-saffron" /> फुटर प्रबंधन (Footer Admin Panel)
+              <Layout className="text-saffron" /> फुटर प्रबंधन
             </h1>
-            <p className="text-xs text-brown/60 mt-0.5">वेबसाइट के निचले हिस्से (Footer) के स्लोगन, कोट्स और सोशल लिंक्स को यहाँ से लाइव बदलें।</p>
+            <p className="text-[10px] uppercase tracking-widest text-brown/50 font-bold mt-1">Footer & Branding Manager</p>
           </div>
           <div className="flex gap-2.5 w-full sm:w-auto">
             <button
               type="button"
               onClick={handleReset}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border border-brown/20 hover:bg-gray-50 text-brown font-semibold py-2 px-4 rounded-xl text-xs transition"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 border border-brown/10 hover:bg-gray-50 text-brown font-bold py-2.5 px-5 rounded-xl text-xs transition active:scale-95"
             >
               <RotateCcw size={14} /> रीसेट
             </button>
             <button
               type="button"
               onClick={handleSave}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-saffron text-white font-semibold py-2 px-5 rounded-xl text-xs shadow-md hover:bg-saffron/90 transition"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-saffron text-white font-bold py-2.5 px-6 rounded-xl text-xs shadow-lg shadow-saffron/20 hover:bg-saffron/90 transition active:scale-95"
             >
               <Save size={14} /> सेव करें
             </button>
@@ -85,31 +132,29 @@ export default function AdminFooter() {
           
           {/* SECTION 1: CORE TEXTS */}
           <div className="bg-white border border-saffron/10 rounded-3xl p-6 shadow-sm space-y-4">
-            <h3 className="text-sm font-bold text-saffron uppercase tracking-wider flex items-center gap-2 border-b pb-2">
-              <MessageSquare size={16} /> मुख्य ब्रांड विवरण और संदेश
+            <h3 className="text-[10px] font-black text-saffron uppercase tracking-[2px] flex items-center gap-2 border-b border-gray-50 pb-3">
+              <MessageSquare size={16} /> 1. मुख्य ब्रांड विवरण और संदेश
             </h3>
             
             <div>
-              <label className="block text-xs font-bold text-brown/80 mb-1.5">मुख्य स्लोगन (Brand Slogan)</label>
+              <label className="block text-[10px] font-bold text-brown/40 mb-1 uppercase ml-1">मुख्य स्लोगन (Brand Slogan)</label>
               <textarea
                 rows={2}
                 value={footerData.slogan}
                 onChange={(e) => handleTextChange("slogan", e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron text-sm bg-gray-50/50 resize-none"
-                placeholder="वैदिक परंपराओं के माध्यम से आपके जीवन में..."
+                className="w-full px-4 py-3 rounded-xl border border-gray-100 focus:outline-none focus:border-saffron text-sm bg-gray-50/50 resize-none leading-relaxed font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-brown/80 mb-1.5">फ्लोटिंग कोट्स बॉक्स (Floating Quote)</label>
+              <label className="block text-[10px] font-bold text-brown/40 mb-1 uppercase ml-1">फ्लोटिंग कोट्स बॉक्स (Floating Quote)</label>
               <div className="relative">
-                <Quote size={16} className="absolute left-3 top-3.5 text-brown/30" />
+                <Quote size={16} className="absolute left-3 top-4 text-saffron/30" />
                 <textarea
                   rows={2}
                   value={footerData.quote}
                   onChange={(e) => handleTextChange("quote", e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron text-sm bg-gray-50/50 resize-none italic"
-                  placeholder="“विश्वास, सच्ची भक्ति और पवित्र अनुष्ठान...”"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-100 focus:outline-none focus:border-saffron text-sm bg-gray-50/50 resize-none italic leading-relaxed"
                 />
               </div>
             </div>
@@ -117,22 +162,22 @@ export default function AdminFooter() {
 
           {/* SECTION 2: SOCIAL NETWORK CONNECTIONS */}
           <div className="bg-white border border-saffron/10 rounded-3xl p-6 shadow-sm space-y-4">
-            <h3 className="text-sm font-bold text-saffron uppercase tracking-wider flex items-center gap-2 border-b pb-2">
-              <Link2 size={16} /> सोशल मीडिया हैंडल्स (Social Links)
+            <h3 className="text-[10px] font-black text-saffron uppercase tracking-[2px] flex items-center gap-2 border-b border-gray-50 pb-3">
+              <Link2 size={16} /> 2. सोशल मीडिया हैंडल्स (Social Links)
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {footerData.socialLinks.map((social, index) => (
-                <div key={index}>
-                  <label className="block text-xs font-bold text-brown/80 mb-1.5">
-                    {social.name} लिंक {social.name === "WhatsApp" && "(wa.me यूआरएल)"}
+                <div key={index} className="space-y-1.5">
+                  <label className="flex items-center justify-between px-1">
+                    <span className="text-[10px] font-bold text-brown/40 uppercase tracking-wider">{social.name}</span>
+                    {social.name === "WhatsApp" && <span className="text-[9px] text-green-600 font-bold bg-green-50 px-2 rounded-full">Use wa.me</span>}
                   </label>
                   <input
                     type="text"
                     value={social.link}
                     onChange={(e) => handleSocialLinkChange(index, e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron text-xs bg-gray-50/50 text-blue-600 font-mono"
-                    placeholder={`https://${social.name.toLowerCase()}.com/...`}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-100 focus:outline-none focus:border-saffron text-xs bg-gray-50/50 text-blue-600 font-mono"
                   />
                 </div>
               ))}
@@ -141,29 +186,28 @@ export default function AdminFooter() {
 
           {/* SECTION 3: COPYRIGHT AREA */}
           <div className="bg-white border border-saffron/10 rounded-3xl p-6 shadow-sm space-y-4">
-            <h3 className="text-sm font-bold text-saffron uppercase tracking-wider flex items-center gap-2 border-b pb-2">
-              <ShieldAlert size={16} /> कॉपीराइट फुटनोट (Copyright Disclosure)
+            <h3 className="text-[10px] font-black text-saffron uppercase tracking-[2px] flex items-center gap-2 border-b border-gray-50 pb-3">
+              <ShieldAlert size={16} /> 3. कॉपीराइट फुटनोट (Copyright Disclosure)
             </h3>
 
             <div>
-              <label className="block text-xs font-bold text-brown/80 mb-1.5">कॉपीराइट टेक्स्ट (Bottom Text)</label>
+              <label className="block text-[10px] font-bold text-brown/40 mb-1 uppercase ml-1">कॉपीराइट टेक्स्ट (Bottom Text)</label>
               <input
                 type="text"
                 value={footerData.footerBottomText}
                 onChange={(e) => handleTextChange("footerBottomText", e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-saffron text-sm bg-gray-50/50"
-                placeholder="© 2026 पंडित जी वैदिक सेवाएं। सर्वाधिकार सुरक्षित।"
+                className="w-full px-4 py-3 rounded-xl border border-gray-100 focus:outline-none focus:border-saffron text-sm bg-gray-50/50 font-medium"
               />
             </div>
           </div>
 
-          {/* Form Submit Button */}
-          <div className="flex justify-end pt-2">
+          {/* Action Footer */}
+          <div className="flex justify-end pb-12">
             <button
               type="submit"
-              className="flex items-center gap-2 bg-gradient-to-r from-[#4a1d00] to-darkbrown text-white font-bold py-2.5 px-8 rounded-xl text-sm shadow-md hover:opacity-95 transition"
+              className="group flex items-center gap-3 bg-darkbrown text-white font-bold py-4 px-10 rounded-2xl shadow-xl hover:bg-black transition-all active:scale-95"
             >
-              <Save size={16} /> फुटर अपडेट करें
+              <Save size={18} /> फुटर अपडेट करें
             </button>
           </div>
         </form>

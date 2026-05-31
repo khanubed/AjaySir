@@ -12,37 +12,37 @@ export default function AdminLogin({ setAuthStatus, triggerNotification }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // --- Backend Login Handler ---
-const handleLogin = async (e) => {
-  e.preventDefault();
-  setAuthError("");
-  setIsSubmitting(true);
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setAuthError("");
+    setIsSubmitting(true);
 
-  try {
-    // 1. Apne banaye huye 'api' instance ka use karein (axios ki jagah)
-    // URL ab sirf "/auth/login" reh jayega kyunki baseURL interceptor mein set hai
-    const res = await api.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`, { username, password });
+    try {
+      // 1. Apne banaye huye 'api' instance ka use karein (axios ki jagah)
+      // URL ab sirf "/auth/login" reh jayega kyunki baseURL interceptor mein set hai
+      const res = await api.post("/api/auth/login", { username, password });
 
-    if (res.data.success) {
-      // 2. Backend se jo asli token aa raha hai, use save karein
-      const token = res.data.token; 
-      
-      localStorage.setItem("admin_session_token", token);
-      localStorage.setItem("isAdmin", "true");
+      if (res.data.success) {
+        // 2. Backend se jo asli token aa raha hai, use save karein
+        const token = res.data.token;
 
-      // 3. UI update karein
-      setAuthStatus(true);
-      triggerNotification("स्वागत है, एडमिन पोर्टल में प्रवेश सफल!");
+        localStorage.setItem("admin_session_token", token);
+        localStorage.setItem("isAdmin", "true");
+
+        // 3. UI update karein
+        setAuthStatus(true);
+        triggerNotification("स्वागत है, एडमिन पोर्टल में प्रवेश सफल!");
+      }
+    } catch (err) {
+      console.error("Login Error:", err);
+      // Backend se aane wala specific error message dikhana
+      setAuthError(
+        err.response?.data?.message || "सर्वर से कनेक्ट नहीं हो पा रहा।",
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-  } catch (err) {
-    console.error("Login Error:", err);
-    // Backend se aane wala specific error message dikhana
-    setAuthError(
-      err.response?.data?.message || "सर्वर से कनेक्ट नहीं हो पा रहा।"
-    );
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#240a00] via-[#1b0700] to-black flex items-center justify-center p-4">
       <motion.div

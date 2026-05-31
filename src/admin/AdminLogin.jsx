@@ -20,7 +20,7 @@ const handleLogin = async (e) => {
   try {
     // 1. Apne banaye huye 'api' instance ka use karein (axios ki jagah)
     // URL ab sirf "/auth/login" reh jayega kyunki baseURL interceptor mein set hai
-    const res = await api.post("/auth/login", { username, password });
+    const res = await api.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`, { username, password });
 
     if (res.data.success) {
       // 2. Backend se jo asli token aa raha hai, use save karein

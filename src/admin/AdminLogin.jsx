@@ -20,7 +20,7 @@ export default function AdminLogin({ setAuthStatus, triggerNotification }) {
     try {
       // 1. Apne banaye huye 'api' instance ka use karein (axios ki jagah)
       // URL ab sirf "/auth/login" reh jayega kyunki baseURL interceptor mein set hai
-      const res = await api.post("/api/auth/login", { username, password });
+      const res = await api.post("/auth/login", { username, password });
 
       if (res.data.success) {
         // 2. Backend se jo asli token aa raha hai, use save karein

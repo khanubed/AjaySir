@@ -17,7 +17,7 @@ const Hero = () => {
   useEffect(() => {
     const fetchLiveHero = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/content/hero");
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/content/hero`);
         const json = await response.json();
         
         if (json.success && json.data && json.data.values) {

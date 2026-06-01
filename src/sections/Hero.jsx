@@ -21,7 +21,7 @@ const Hero = () => {
     const fetchLiveHero = async () => {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/content/hero`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/content/hero`,
         );
         const json = await response.json();
 

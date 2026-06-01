@@ -10,7 +10,7 @@ export default function Review() {
   const [liveData, setLiveData] = useState({ overviewStats: [], reviews: [] });
   const [loading, setLoading] = useState(true);
 
-  const API_URL = "http://localhost:5000/api/content/reviews";
+  const API_URL = `${import.meta.env.VITE_BACKEND_URL}/content/reviews`;
 
   useEffect(() => {
     const fetchReviews = async () => {

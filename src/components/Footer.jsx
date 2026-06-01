@@ -26,7 +26,7 @@ export default function Footer() {
   const [liveData, setLiveData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const API_URL = "http://localhost:5000/api/content/footer";
+  const API_URL = `${import.meta.env.VITE_BACKEND_URL}/content/footer`;
 
   useEffect(() => {
     const fetchLiveFooter = async () => {

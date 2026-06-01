@@ -6,7 +6,7 @@ import axios from "axios";
 // Fallback data import
 import { videoData as fallbackData } from "../data/videoData";
 
-const API_URL = "http://localhost:5000/api/content/videos";
+const API_URL = `${import.meta.env.VITE_BACKEND_URL}/content/videos`;
 
 export const VideoSection = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);

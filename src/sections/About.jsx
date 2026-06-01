@@ -9,7 +9,7 @@ import { getAboutData } from "../data/about.js";
 export default function About() {
   // 1. Initial State: Load from local data immediately
   const [aboutData, setAboutData] = useState(getAboutData());
-  const API_URL = "http://localhost:5000/api/content/about";
+  const API_URL = `${import.meta.env.VITE_BACKEND_URL}/content/about`;
 
   // 2. Fetch Logic: Update silently once backend responds
   useEffect(() => {

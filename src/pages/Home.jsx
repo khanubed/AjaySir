@@ -1,6 +1,6 @@
 import React from "react";
 import Hero from "../sections/Hero";
-import ActionStrip from "../sections/ActionStrip";
+// import ActionStrip from "../sections/ActionStrip";
 import Service from "../sections/Service";
 import VideoSection from "../sections/VideoSection";
 import Gallery from "../sections/Gallery";
@@ -14,7 +14,7 @@ const Home = () => {
   return (
     <div>
       <Hero />
-      <ActionStrip />
+      {/* <ActionStrip /> */}
       <Service />
       <VideoSection />
       <Gallery />

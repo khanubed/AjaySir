@@ -8,7 +8,7 @@ export default function LocationSection() {
   const [liveLocationData, setLiveLocationData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = "http://localhost:5000/api/content/location";
+  const API_URL = `${import.meta.env.VITE_BACKEND_URL}/api/content/location`;
 
   useEffect(() => {
     const fetchLocation = async () => {

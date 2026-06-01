@@ -12,7 +12,7 @@ export default function Gallery() {
     "पूर्ण भक्ति, सनातन परंपरा और प्रामाणिक वैदिक पद्धतियों के साथ संपन्न कराए गए पवित्र अनुष्ठानों, आध्यात्मिक समारोहों, हवन, विशेष पूजा और अलौकिक क्षणों की दिव्य झलकियाँ देखें।"
   );
 
-  const API_URL = `${import.meta.env.VITE_BACKEND_URL}/content/gallery`;
+  const API_URL = `${import.meta.env.VITE_BACKEND_URL}/api/content/gallery`;
 
   useEffect(() => {
     const fetchGalleryContent = async () => {

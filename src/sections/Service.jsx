@@ -45,7 +45,7 @@ const Service = () => {
   useEffect(() => {
     const fetchLiveServices = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/content/services`);
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/content/services`);
         const json = await response.json();
         
         // Agar response sahi hai aur array khali nahi hai

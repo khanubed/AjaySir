@@ -33,8 +33,8 @@ export default function Contact() {
 
   const [loading, setLoading] = useState(false);
 
-  const CONTACT_API_URL = `${import.meta.env.VITE_BACKEND_URL}/content/contact`;
-  const QUERY_API_URL = `${import.meta.env.VITE_BACKEND_URL}/query`;
+  const CONTACT_API_URL = `${import.meta.env.VITE_BACKEND_URL}/api/content/contact`;
+  const QUERY_API_URL = `${import.meta.env.VITE_BACKEND_URL}/api/query`;
 
   // Fetch Contact Details
   useEffect(() => {
